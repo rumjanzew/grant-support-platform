@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "core.apps.CoreConfig",
 ]
 
 MIDDLEWARE = [
@@ -76,6 +77,8 @@ DATABASES = {
         "CONN_MAX_AGE": 60,
     }
 }
+
+AUTH_USER_MODEL = "core.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
