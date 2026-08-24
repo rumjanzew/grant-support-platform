@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_spectacular",
     "rest_framework_simplejwt.token_blacklist",
     "core.apps.CoreConfig",
 ]
@@ -86,6 +87,20 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "GrantSupport API",
+    "DESCRIPTION": "REST API платформы грантовой поддержки Республики Коми",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {
+        "ApplicationStatusEnum": "core.models.Application.Status",
+        "AssignmentStatusEnum": "core.models.ExpertAssignment.Status",
+        "GrantStatusEnum": "core.models.Grant.Status",
+        "AccountStatusEnum": "core.models.User.Status",
+    },
 }
 
 SIMPLE_JWT = {
@@ -119,5 +134,13 @@ USE_TZ = True
 STATIC_URL = "static/"
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "media/"
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://127.0.0.1:5173")
+EMAIL_BACKEND = os.environ.get(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@grantsupport.local")
+PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT", "3600"))
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

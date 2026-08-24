@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 from core.models import (
     Application,
@@ -42,7 +43,7 @@ class AssignmentSummarySerializer(serializers.ModelSerializer):
         fields = ("id", "expert", "expert_name", "expert_email", "assigned_at", "status")
         read_only_fields = fields
 
-    def get_expert_name(self, assignment):
+    def get_expert_name(self, assignment) -> str:
         return assignment.expert.get_full_name().strip() or assignment.expert.email
 
 
@@ -72,6 +73,7 @@ class AdminApplicationSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
 
+    @extend_schema_field(AssignmentSummarySerializer(allow_null=True))
     def get_assignment(self, application):
         assignments = list(application.expert_assignments.all())
         active = next(
@@ -160,6 +162,7 @@ class ExpertAssignmentSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
 
+    @extend_schema_field(ExpertiseReportSerializer(allow_null=True))
     def get_report(self, assignment):
         try:
             report = assignment.report
@@ -177,3 +180,31 @@ class ExpertDecisionSerializer(serializers.Serializer):
     score = serializers.IntegerField(min_value=0, max_value=100)
     comment = serializers.CharField(allow_blank=False, trim_whitespace=True)
     decision = serializers.ChoiceField(choices=ExpertiseReport.Decision.choices)
+
+
+class DailyCountSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    count = serializers.IntegerField()
+
+
+class StatusCountSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class AdministratorDashboardSerializer(serializers.Serializer):
+    grants = serializers.IntegerField()
+    applications = serializers.IntegerField()
+    awaiting_assignment = serializers.IntegerField()
+    under_review = serializers.IntegerField()
+    users = serializers.IntegerField()
+    experts = serializers.IntegerField()
+    applications_by_status = StatusCountSerializer(many=True)
+    user_registrations_by_day = DailyCountSerializer(many=True)
+    applications_by_day = DailyCountSerializer(many=True)
+
+
+class ExpertDashboardSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    active = serializers.IntegerField()
+    completed = serializers.IntegerField()

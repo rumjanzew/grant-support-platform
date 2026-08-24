@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from core.models import Application, Grant, Organization, Role, User
+from core.models import Application, AuditLog, Grant, Organization, Role, User
 
 
 class CoreApiTestCase(APITestCase):
@@ -143,6 +143,12 @@ class CoreApiTestCase(APITestCase):
         )
         self.assertEqual(created.status_code, status.HTTP_201_CREATED)
         self.assertEqual(created.data["created_by"], self.admin.id)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action="grant.created",
+                entity_id=created.data["id"],
+            ).exists()
+        )
 
         invalid = self.client.post(
             reverse("grant-list"),
@@ -229,6 +235,12 @@ class CoreApiTestCase(APITestCase):
         self.assertEqual(created.status_code, status.HTTP_201_CREATED)
         self.assertEqual(created.data["organization"], self.organization.id)
         self.assertEqual(created.data["status"], Application.Status.DRAFT)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action="application.created",
+                entity_id=created.data["id"],
+            ).exists()
+        )
 
         applications = self.client.get(reverse("application-list"))
         returned_ids = {item["id"] for item in applications.data}

@@ -11,7 +11,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from core.models import Application, Attachment, Grant, Organization, Role, User
+from core.models import Application, Attachment, AuditLog, Grant, Organization, Role, User
 from core.services.attachments import MAX_FILE_SIZE
 
 
@@ -104,6 +104,12 @@ class ApplicationWorkflowTests(APITestCase):
         self.assertEqual(application.status, Application.Status.SUBMITTED)
         self.assertRegex(application.application_number, r"^GR-\d{4}-\d{5}$")
         self.assertIsNotNone(application.submitted_at)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action="application.submitted",
+                entity_id=application.id,
+            ).exists()
+        )
 
     def test_revision_required_submits_as_revision_and_keeps_number(self):
         application = self.create_application(

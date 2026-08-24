@@ -25,6 +25,14 @@ export const authApi = {
     apiClient.post<LoginResponse>("/auth/login/", { email, password }),
   me: () => apiClient.get<CurrentUser>("/auth/me/"),
   logout: (refresh: string) => apiClient.post("/auth/logout/", { refresh }),
+  requestPasswordReset: (email: string) =>
+    apiClient.post<{ detail: string }>("/auth/password-reset/", { email }),
+  confirmPasswordReset: (data: {
+    uid: string;
+    token: string;
+    password: string;
+    password_confirm: string;
+  }) => apiClient.post<{ detail: string }>("/auth/password-reset/confirm/", data),
 };
 
 export interface GrantParams {

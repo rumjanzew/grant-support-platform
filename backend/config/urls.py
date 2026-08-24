@@ -3,6 +3,7 @@
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from config.views import health_check
 from core.api.attachment_views import (
@@ -13,6 +14,8 @@ from core.api.auth_views import (
     CurrentUserView,
     LoginView,
     LogoutView,
+    PasswordResetConfirmView,
+    PasswordResetRequestView,
     RefreshView,
     RegistrationView,
 )
@@ -51,6 +54,22 @@ urlpatterns = [
     path("api/auth/refresh/", RefreshView.as_view(), name="auth-refresh"),
     path("api/auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("api/auth/me/", CurrentUserView.as_view(), name="auth-me"),
+    path(
+        "api/auth/password-reset/",
+        PasswordResetRequestView.as_view(),
+        name="auth-password-reset",
+    ),
+    path(
+        "api/auth/password-reset/confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="auth-password-reset-confirm",
+    ),
+    path("api/schema/", SpectacularAPIView.as_view(), name="openapi-schema"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="openapi-schema"),
+        name="swagger-ui",
+    ),
     path(
         "api/admin/dashboard/",
         AdministratorDashboardView.as_view(),

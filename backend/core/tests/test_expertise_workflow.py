@@ -8,6 +8,7 @@ from rest_framework.test import APITestCase
 
 from core.models import (
     Application,
+    AuditLog,
     ExpertAssignment,
     ExpertiseReport,
     Grant,
@@ -87,6 +88,12 @@ class ExpertiseWorkflowTests(APITestCase):
         self.assertEqual(assignment.expert, self.expert)
         self.assertEqual(assignment.assigned_by, self.admin)
         self.assertEqual(assignment.status, ExpertAssignment.Status.ACTIVE)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action="expert.assigned",
+                entity_id=application.id,
+            ).exists()
+        )
 
     def test_revision_submitted_application_can_be_assigned(self):
         application = self.create_application(
@@ -201,6 +208,12 @@ class ExpertiseWorkflowTests(APITestCase):
                 self.assertEqual(assignment.status, ExpertAssignment.Status.COMPLETED)
                 self.assertFalse(report.draft)
                 self.assertIsNotNone(report.submitted_at)
+                self.assertTrue(
+                    AuditLog.objects.filter(
+                        action="expert.decision",
+                        entity_id=application.id,
+                    ).exists()
+                )
 
     def test_completed_assignment_cannot_receive_second_decision(self):
         application = self.create_application(suffix="20")

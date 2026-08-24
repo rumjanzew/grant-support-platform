@@ -19,6 +19,7 @@ from core.api.serializers import (
 )
 from core.models import Application, Grant, Organization, User
 from core.services.application_workflow import submit_application
+from core.services.audit import write_audit_log
 
 
 class GrantViewSet(viewsets.ModelViewSet):
@@ -68,7 +69,30 @@ class GrantViewSet(viewsets.ModelViewSet):
         return queryset.filter(**{f"{field}__{lookup}": value})
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        grant = serializer.save(created_by=self.request.user)
+        write_audit_log(
+            action="grant.created",
+            request=self.request,
+            user=self.request.user,
+            entity=grant,
+            metadata={"status": grant.status},
+        )
+
+    def perform_update(self, serializer):
+        previous_status = serializer.instance.status
+        grant = serializer.save()
+        write_audit_log(
+            action=(
+                "grant.archived"
+                if previous_status != Grant.Status.ARCHIVED
+                and grant.status == Grant.Status.ARCHIVED
+                else "grant.updated"
+            ),
+            request=self.request,
+            user=self.request.user,
+            entity=grant,
+            metadata={"previous_status": previous_status, "status": grant.status},
+        )
 
     def destroy(self, request, *args, **kwargs):
         grant = self.get_object()
@@ -86,6 +110,7 @@ class OrganizationViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
+    queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     permission_classes = (IsApplicant,)
 
@@ -130,6 +155,7 @@ class ApplicationViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
+    queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
     permission_classes = (IsApplicant,)
 
@@ -149,7 +175,14 @@ class ApplicationViewSet(
             )
         if organization.status != Organization.Status.ACTIVE:
             raise PermissionDenied("Заблокированная организация не может подавать заявки.")
-        serializer.save(organization=organization)
+        application = serializer.save(organization=organization)
+        write_audit_log(
+            action="application.created",
+            request=self.request,
+            user=self.request.user,
+            entity=application,
+            metadata={"status": application.status},
+        )
 
     def update(self, request, *args, **kwargs):
         application = self.get_object()
@@ -172,5 +205,12 @@ class ApplicationViewSet(
         application = submit_application(
             application.id,
             request.user.organization_id,
+        )
+        write_audit_log(
+            action="application.submitted",
+            request=request,
+            user=request.user,
+            entity=application,
+            metadata={"status": application.status},
         )
         return Response(self.get_serializer(application).data)

@@ -1,14 +1,22 @@
+from datetime import timedelta
+
+from django.db.models import Count
+from django.db.models.functions import TruncDate
+from django.utils import timezone
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from core.api.pagination import GrantPagination
 from core.api.permissions import IsAdministrator, IsExpert
 from core.api.workflow_serializers import (
     AdminApplicationSerializer,
+    AdministratorDashboardSerializer,
     AssignmentCreateSerializer,
     ExpertAssignmentSerializer,
+    ExpertDashboardSerializer,
     ExpertDecisionSerializer,
     ExpertiseReportSerializer,
     ReportDraftSerializer,
@@ -20,12 +28,32 @@ from core.services.expertise_workflow import (
     save_report_draft,
     submit_expert_decision,
 )
+from core.services.audit import write_audit_log
 
 
 class AdministratorDashboardView(APIView):
     permission_classes = (IsAdministrator,)
 
+    @extend_schema(responses=AdministratorDashboardSerializer)
     def get(self, request):
+        start_date = timezone.localdate() - timedelta(days=13)
+        registrations = {
+            row["day"]: row["count"]
+            for row in User.objects.filter(created_at__date__gte=start_date)
+            .annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(count=Count("id"))
+            .order_by("day")
+        }
+        applications_by_day = {
+            row["day"]: row["count"]
+            for row in Application.objects.filter(created_at__date__gte=start_date)
+            .annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(count=Count("id"))
+            .order_by("day")
+        }
+        days = [start_date + timedelta(days=offset) for offset in range(14)]
         return Response(
             {
                 "grants": Grant.objects.count(),
@@ -41,6 +69,21 @@ class AdministratorDashboardView(APIView):
                 ).count(),
                 "users": User.objects.count(),
                 "experts": User.objects.filter(role__name=Role.Name.EXPERT).count(),
+                "applications_by_status": [
+                    {
+                        "status": status_value,
+                        "count": Application.objects.filter(status=status_value).count(),
+                    }
+                    for status_value in Application.Status.values
+                ],
+                "user_registrations_by_day": [
+                    {"date": day.isoformat(), "count": registrations.get(day, 0)}
+                    for day in days
+                ],
+                "applications_by_day": [
+                    {"date": day.isoformat(), "count": applications_by_day.get(day, 0)}
+                    for day in days
+                ],
             }
         )
 
@@ -73,6 +116,10 @@ class AdministratorApplicationViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     @action(detail=True, methods=("post",), url_path="assign-expert")
+    @extend_schema(
+        request=AssignmentCreateSerializer,
+        responses={status.HTTP_201_CREATED: ExpertAssignmentSerializer},
+    )
     def assign_expert(self, request, pk=None):
         application = self.get_object()
         serializer = AssignmentCreateSerializer(data=request.data)
@@ -81,6 +128,13 @@ class AdministratorApplicationViewSet(viewsets.ReadOnlyModelViewSet):
             application.id,
             serializer.validated_data["expert_id"],
             request.user,
+        )
+        write_audit_log(
+            action="expert.assigned",
+            request=request,
+            user=request.user,
+            entity=application,
+            metadata={"expert_id": str(assignment.expert_id)},
         )
         assignment = (
             ExpertAssignment.objects.select_related(
@@ -122,6 +176,7 @@ class AdministratorUserViewSet(viewsets.ReadOnlyModelViewSet):
 class ExpertDashboardView(APIView):
     permission_classes = (IsExpert,)
 
+    @extend_schema(responses=ExpertDashboardSerializer)
     def get(self, request):
         assignments = ExpertAssignment.objects.filter(expert=request.user)
         return Response(
@@ -136,6 +191,7 @@ class ExpertDashboardView(APIView):
 
 
 class ExpertAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ExpertAssignment.objects.all()
     serializer_class = ExpertAssignmentSerializer
     permission_classes = (IsExpert,)
     pagination_class = GrantPagination
@@ -166,6 +222,7 @@ class ExpertAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     @action(detail=True, methods=("patch", "put"), url_path="report")
+    @extend_schema(request=ReportDraftSerializer, responses=ExpertiseReportSerializer)
     def report(self, request, pk=None):
         serializer = ReportDraftSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -178,6 +235,7 @@ class ExpertAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(ExpertiseReportSerializer(report).data)
 
     @action(detail=True, methods=("post",), url_path="decision")
+    @extend_schema(request=ExpertDecisionSerializer, responses=ExpertiseReportSerializer)
     def decision(self, request, pk=None):
         serializer = ExpertDecisionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -185,5 +243,16 @@ class ExpertAssignmentViewSet(viewsets.ReadOnlyModelViewSet):
             pk,
             request.user.id,
             **serializer.validated_data,
+        )
+        write_audit_log(
+            action="expert.decision",
+            request=request,
+            user=request.user,
+            entity=report.application,
+            metadata={
+                "decision": report.decision,
+                "score": report.score,
+                "assignment_id": str(report.assignment_id),
+            },
         )
         return Response(ExpertiseReportSerializer(report).data)

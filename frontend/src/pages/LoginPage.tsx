@@ -40,6 +40,7 @@ export function LoginPage() {
           <TextField label="Email" type="email" autoComplete="email" fullWidth error={Boolean(errors.email)} helperText={errors.email?.message} {...register("email", { required: "Введите email" })} />
           <TextField label="Пароль" type="password" autoComplete="current-password" fullWidth error={Boolean(errors.password)} helperText={errors.password?.message} {...register("password", { required: "Введите пароль" })} />
           <Button type="submit" size="large" variant="contained" disabled={isSubmitting}>{isSubmitting ? "Входим…" : "Войти"}</Button>
+          <Link component={RouterLink} to="/password-reset" textAlign="center">Забыли пароль?</Link>
           <Typography variant="body2" textAlign="center">Нет аккаунта? <Link component={RouterLink} to="/register">Зарегистрироваться</Link></Typography>
         </Stack>
       </Box>

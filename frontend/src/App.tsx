@@ -8,9 +8,11 @@ import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { GrantDetailPage } from "./pages/GrantDetailPage";
 import { GrantsPage } from "./pages/GrantsPage";
 import { HomePage } from "./pages/HomePage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { AdminApplicationsPage } from "./pages/admin/AdminApplicationsPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminGrantFormPage } from "./pages/admin/AdminGrantFormPage";
@@ -29,6 +31,8 @@ export default function App() {
         <Route path="grants/:id" element={<GrantDetailPage />} />
         <Route path="login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route path="password-reset" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+        <Route path="password-reset/confirm" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
         <Route path="applications" element={<ApplicantRoute><ApplicationsPage /></ApplicantRoute>} />
         <Route path="applications/new" element={<ApplicantRoute><ApplicationCreatePage /></ApplicantRoute>} />
         <Route path="applications/:id" element={<ApplicantRoute><ApplicationDetailPage /></ApplicantRoute>} />

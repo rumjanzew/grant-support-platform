@@ -360,3 +360,32 @@ class ExpertiseReport(models.Model):
 
     def __str__(self):
         return f"Заключение по {self.application}"
+
+
+class AuditLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="audit_logs",
+        null=True,
+        blank=True,
+    )
+    action = models.CharField(max_length=64, db_index=True)
+    entity_type = models.CharField(max_length=64, db_index=True)
+    entity_id = models.UUIDField(null=True, blank=True, db_index=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = "audit_logs"
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=("user", "created_at")),
+            models.Index(fields=("entity_type", "entity_id")),
+        ]
+
+    def __str__(self):
+        return f"{self.action} · {self.created_at:%Y-%m-%d %H:%M:%S}"

@@ -97,6 +97,9 @@ export interface AdministratorDashboard {
   under_review: number;
   users: number;
   experts: number;
+  applications_by_status: Array<{ status: ApplicationStatus; count: number }>;
+  user_registrations_by_day: Array<{ date: string; count: number }>;
+  applications_by_day: Array<{ date: string; count: number }>;
 }
 
 export interface ExpertDashboard {
