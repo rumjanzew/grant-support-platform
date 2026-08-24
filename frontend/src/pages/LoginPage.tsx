@@ -5,6 +5,7 @@ import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 
 import { getApiErrorMessage } from "../api/errors";
 import { useAuth } from "../auth/AuthContext";
+import { roleHome } from "../auth/RouteGuards";
 
 interface LoginForm {
   email: string;
@@ -23,7 +24,7 @@ export function LoginPage() {
     try {
       const user = await login(data.email, data.password);
       const target = (location.state as { from?: string } | null)?.from;
-      navigate(target || (user.role === "Applicant" ? "/applications" : "/"), { replace: true });
+      navigate(target || roleHome(user.role), { replace: true });
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
     }

@@ -39,6 +39,16 @@ class IsApplicant(BasePermission):
         return user_has_role(request.user, Role.Name.APPLICANT)
 
 
+class IsAdministrator(BasePermission):
+    def has_permission(self, request, view):
+        return is_administrator(request.user)
+
+
+class IsExpert(BasePermission):
+    def has_permission(self, request, view):
+        return user_has_role(request.user, Role.Name.EXPERT)
+
+
 class IsActivePlatformUser(BasePermission):
     def has_permission(self, request, view):
         user = request.user

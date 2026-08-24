@@ -1,6 +1,7 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Q
 
@@ -262,3 +263,100 @@ class Attachment(models.Model):
 
     def __str__(self):
         return self.original_name
+
+
+class ExpertAssignment(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = "ACTIVE", "Активно"
+        COMPLETED = "COMPLETED", "Завершено"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.PROTECT,
+        related_name="expert_assignments",
+    )
+    expert = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="expert_assignments",
+    )
+    assigned_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="created_expert_assignments",
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+        db_index=True,
+    )
+
+    class Meta:
+        db_table = "expert_assignments"
+        ordering = ("-assigned_at",)
+        indexes = [models.Index(fields=("expert", "status"))]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("application",),
+                condition=Q(status="ACTIVE"),
+                name="one_active_expert_assignment_per_application",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.application} — {self.expert}"
+
+
+class ExpertiseReport(models.Model):
+    class Decision(models.TextChoices):
+        APPROVED = "APPROVED", "Одобрить"
+        REJECTED = "REJECTED", "Отклонить"
+        REVISION_REQUIRED = "REVISION_REQUIRED", "Вернуть на доработку"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    assignment = models.OneToOneField(
+        ExpertAssignment,
+        on_delete=models.PROTECT,
+        related_name="report",
+    )
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.PROTECT,
+        related_name="expertise_reports",
+    )
+    expert = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="expertise_reports",
+    )
+    score = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=(MinValueValidator(0), MaxValueValidator(100)),
+    )
+    comment = models.TextField(blank=True)
+    decision = models.CharField(
+        max_length=24,
+        choices=Decision.choices,
+        blank=True,
+    )
+    draft = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "expertise_reports"
+        ordering = ("-created_at",)
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(score__isnull=True) | Q(score__gte=0, score__lte=100),
+                name="expertise_score_between_0_and_100",
+            )
+        ]
+
+    def __str__(self):
+        return f"Заключение по {self.application}"

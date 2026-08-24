@@ -8,6 +8,11 @@ const codeMessages: Record<string, string> = {
   FILE_LIMIT_EXCEEDED: "К заявке можно прикрепить не более пяти файлов.",
   TOTAL_FILE_SIZE_EXCEEDED: "Общий размер документов превышает 50 МБ.",
   GRANT_NOT_OPEN: "Грант сейчас не принимает заявки.",
+  INVALID_EXPERT: "Выберите активного пользователя с ролью эксперта.",
+  INVALID_ASSIGNMENT_STATUS: "Экспертное назначение уже завершено.",
+  INVALID_EXPERT_DECISION: "Выберите допустимое экспертное решение.",
+  SCORE_REQUIRED: "Для решения необходимо указать оценку.",
+  COMMENT_REQUIRED: "Для решения необходимо добавить комментарий.",
 };
 
 export function getApiErrorMessage(error: unknown): string {

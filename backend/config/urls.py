@@ -17,12 +17,30 @@ from core.api.auth_views import (
     RegistrationView,
 )
 from core.api.views import ApplicationViewSet, GrantViewSet, OrganizationViewSet
+from core.api.workflow_views import (
+    AdministratorApplicationViewSet,
+    AdministratorDashboardView,
+    AdministratorUserViewSet,
+    ExpertAssignmentViewSet,
+    ExpertDashboardView,
+)
 
 
 router = DefaultRouter()
 router.register("grants", GrantViewSet, basename="grant")
 router.register("organizations", OrganizationViewSet, basename="organization")
 router.register("applications", ApplicationViewSet, basename="application")
+router.register(
+    "admin/applications",
+    AdministratorApplicationViewSet,
+    basename="admin-application",
+)
+router.register("admin/users", AdministratorUserViewSet, basename="admin-user")
+router.register(
+    "expert/assignments",
+    ExpertAssignmentViewSet,
+    basename="expert-assignment",
+)
 
 
 urlpatterns = [
@@ -33,6 +51,16 @@ urlpatterns = [
     path("api/auth/refresh/", RefreshView.as_view(), name="auth-refresh"),
     path("api/auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("api/auth/me/", CurrentUserView.as_view(), name="auth-me"),
+    path(
+        "api/admin/dashboard/",
+        AdministratorDashboardView.as_view(),
+        name="admin-dashboard",
+    ),
+    path(
+        "api/expert/dashboard/",
+        ExpertDashboardView.as_view(),
+        name="expert-dashboard",
+    ),
     path(
         "api/applications/<uuid:application_id>/attachments/",
         ApplicationAttachmentListView.as_view(),

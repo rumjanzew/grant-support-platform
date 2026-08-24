@@ -28,7 +28,23 @@ export function AppLayout() {
     { label: "Главная", to: "/" },
     { label: "Гранты", to: "/grants" },
     ...(user?.role === "Applicant" ? [{ label: "Мои заявки", to: "/applications" }] : []),
+    ...(user?.role === "Administrator" ? [
+      { label: "Панель", to: "/admin" },
+      { label: "Управление грантами", to: "/admin/grants" },
+      { label: "Заявки", to: "/admin/applications" },
+      { label: "Пользователи", to: "/admin/users" },
+    ] : []),
+    ...(user?.role === "Expert" ? [
+      { label: "Кабинет", to: "/expert" },
+      { label: "Назначенные заявки", to: "/expert/assignments" },
+    ] : []),
   ];
+
+  const isActive = (to: string) =>
+    location.pathname === to || (
+      !["/", "/admin", "/expert"].includes(to)
+      && location.pathname.startsWith(`${to}/`)
+    );
 
   const handleLogout = async () => {
     await logout();
@@ -46,7 +62,7 @@ export function AppLayout() {
             GrantSupport
           </Typography>
           <Stack direction="row" spacing={0.5} sx={{ display: { xs: "none", md: "flex" }, flexGrow: 1 }}>
-            {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} color="inherit" variant={location.pathname === link.to ? "outlined" : "text"}>{link.label}</Button>)}
+            {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} color="inherit" variant={isActive(link.to) ? "outlined" : "text"}>{link.label}</Button>)}
           </Stack>
           {user ? (
             <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: "none", sm: "flex" } }}>
@@ -66,7 +82,7 @@ export function AppLayout() {
           <Typography variant="h6" sx={{ p: 2, fontWeight: 800 }}>GrantSupport</Typography>
           <Divider />
           <List>
-            {links.map((link) => <ListItemButton key={link.to} component={RouterLink} to={link.to} selected={location.pathname === link.to} onClick={() => setDrawerOpen(false)}><ListItemText primary={link.label} /></ListItemButton>)}
+            {links.map((link) => <ListItemButton key={link.to} component={RouterLink} to={link.to} selected={isActive(link.to)} onClick={() => setDrawerOpen(false)}><ListItemText primary={link.label} /></ListItemButton>)}
           </List>
           <Divider />
           <List>

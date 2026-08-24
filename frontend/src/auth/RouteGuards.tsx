@@ -4,10 +4,16 @@ import { LoadingState } from "../components/LoadingState";
 import type { UserRole } from "../types";
 import { useAuth } from "./AuthContext";
 
+export function roleHome(role: UserRole) {
+  if (role === "Applicant") return "/applications";
+  if (role === "Administrator") return "/admin";
+  return "/expert";
+}
+
 export function GuestRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <LoadingState />;
-  return user ? <Navigate to={user.role === "Applicant" ? "/applications" : "/"} replace /> : children;
+  return user ? <Navigate to={roleHome(user.role)} replace /> : children;
 }
 
 export function RoleRoute({

@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 
-import { ApplicantRoute, GuestRoute } from "./auth/RouteGuards";
+import { AdministratorRoute, ApplicantRoute, ExpertRoute, GuestRoute } from "./auth/RouteGuards";
 import { AppLayout } from "./components/AppLayout";
 import { ApplicationCreatePage } from "./pages/ApplicationCreatePage";
 import { ApplicationDetailPage } from "./pages/ApplicationDetailPage";
@@ -11,6 +11,14 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { AdminApplicationsPage } from "./pages/admin/AdminApplicationsPage";
+import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
+import { AdminGrantFormPage } from "./pages/admin/AdminGrantFormPage";
+import { AdminGrantsPage } from "./pages/admin/AdminGrantsPage";
+import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { ExpertAssignmentDetailPage } from "./pages/expert/ExpertAssignmentDetailPage";
+import { ExpertAssignmentsPage } from "./pages/expert/ExpertAssignmentsPage";
+import { ExpertDashboardPage } from "./pages/expert/ExpertDashboardPage";
 
 export default function App() {
   return (
@@ -24,6 +32,15 @@ export default function App() {
         <Route path="applications" element={<ApplicantRoute><ApplicationsPage /></ApplicantRoute>} />
         <Route path="applications/new" element={<ApplicantRoute><ApplicationCreatePage /></ApplicantRoute>} />
         <Route path="applications/:id" element={<ApplicantRoute><ApplicationDetailPage /></ApplicantRoute>} />
+        <Route path="admin" element={<AdministratorRoute><AdminDashboardPage /></AdministratorRoute>} />
+        <Route path="admin/grants" element={<AdministratorRoute><AdminGrantsPage /></AdministratorRoute>} />
+        <Route path="admin/grants/new" element={<AdministratorRoute><AdminGrantFormPage /></AdministratorRoute>} />
+        <Route path="admin/grants/:id/edit" element={<AdministratorRoute><AdminGrantFormPage /></AdministratorRoute>} />
+        <Route path="admin/applications" element={<AdministratorRoute><AdminApplicationsPage /></AdministratorRoute>} />
+        <Route path="admin/users" element={<AdministratorRoute><AdminUsersPage /></AdministratorRoute>} />
+        <Route path="expert" element={<ExpertRoute><ExpertDashboardPage /></ExpertRoute>} />
+        <Route path="expert/assignments" element={<ExpertRoute><ExpertAssignmentsPage /></ExpertRoute>} />
+        <Route path="expert/assignments/:id" element={<ExpertRoute><ExpertAssignmentDetailPage /></ExpertRoute>} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
