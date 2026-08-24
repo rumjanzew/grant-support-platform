@@ -181,7 +181,12 @@ class Application(models.Model):
         CANCELLED = "CANCELLED", "Отменена"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application_number = models.CharField(max_length=32, unique=True)
+    application_number = models.CharField(
+        max_length=32,
+        unique=True,
+        null=True,
+        blank=True,
+    )
     organization = models.ForeignKey(
         Organization,
         on_delete=models.PROTECT,
@@ -225,4 +230,35 @@ class Application(models.Model):
         ]
 
     def __str__(self):
-        return self.application_number
+        return self.application_number or str(self.id)
+
+
+class Attachment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    original_name = models.CharField(max_length=255)
+    stored_name = models.CharField(max_length=255)
+    storage_path = models.CharField(max_length=500)
+    mime_type = models.CharField(max_length=128)
+    size_bytes = models.PositiveBigIntegerField()
+    sha256 = models.CharField(max_length=64)
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="uploaded_attachments",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "attachments"
+        ordering = ("uploaded_at",)
+        indexes = [
+            models.Index(fields=("application", "uploaded_at")),
+        ]
+
+    def __str__(self):
+        return self.original_name

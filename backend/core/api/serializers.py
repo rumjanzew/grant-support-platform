@@ -1,9 +1,7 @@
-import uuid
-from datetime import date
-
+from django.utils import timezone
 from rest_framework import serializers
 
-from core.models import Application, Grant, Organization
+from core.models import Application, Attachment, Grant, Organization
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -43,7 +41,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         return value
 
     def validate_registration_date(self, value):
-        if value and value > date.today():
+        if value and value > timezone.localdate():
             raise serializers.ValidationError(
                 "Дата регистрации не может быть в будущем."
             )
@@ -130,7 +128,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         )
 
         if self.instance is None or "grant" in attrs:
-            today = date.today()
+            today = timezone.localdate()
             if grant.status != Grant.Status.OPEN:
                 raise serializers.ValidationError(
                     {"grant": "Подать заявку можно только на открытый грант."}
@@ -155,13 +153,26 @@ class ApplicationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        for _ in range(10):
-            number = f"GR-{date.today().year}-{uuid.uuid4().int % 100000:05d}"
-            if not Application.objects.filter(application_number=number).exists():
-                return Application.objects.create(
-                    application_number=number,
-                    **validated_data,
-                )
-        raise serializers.ValidationError(
-            {"application_number": "Не удалось сформировать уникальный номер заявки."}
+        return Application.objects.create(**validated_data)
+
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attachment
+        fields = (
+            "id",
+            "application",
+            "original_name",
+            "stored_name",
+            "storage_path",
+            "mime_type",
+            "size_bytes",
+            "sha256",
+            "uploaded_by",
+            "uploaded_at",
         )
+        read_only_fields = fields
+
+
+class AttachmentUploadSerializer(serializers.Serializer):
+    file = serializers.FileField(write_only=True)

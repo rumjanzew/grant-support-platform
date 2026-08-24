@@ -18,6 +18,7 @@ from core.api.serializers import (
     OrganizationSerializer,
 )
 from core.models import Application, Grant, Organization, User
+from core.services.application_workflow import submit_application
 
 
 class GrantViewSet(viewsets.ModelViewSet):
@@ -158,6 +159,18 @@ class ApplicationViewSet(
         }
         if application.status not in editable_statuses:
             raise ValidationError(
-                {"status": "Заявку в текущем статусе нельзя редактировать."}
+                {
+                    "code": "INVALID_APPLICATION_STATUS",
+                    "detail": "Заявку в текущем статусе нельзя редактировать.",
+                }
             )
         return super().update(request, *args, **kwargs)
+
+    @action(detail=True, methods=("post",))
+    def submit(self, request, pk=None):
+        application = self.get_object()
+        application = submit_application(
+            application.id,
+            request.user.organization_id,
+        )
+        return Response(self.get_serializer(application).data)
