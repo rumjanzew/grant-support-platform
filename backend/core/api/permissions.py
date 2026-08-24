@@ -37,3 +37,14 @@ class IsAdministratorOrReadOnly(BasePermission):
 class IsApplicant(BasePermission):
     def has_permission(self, request, view):
         return user_has_role(request.user, Role.Name.APPLICANT)
+
+
+class IsActivePlatformUser(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and user.is_active
+            and user.status == User.Status.ACTIVE
+        )
