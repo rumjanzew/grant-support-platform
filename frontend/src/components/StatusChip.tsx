@@ -1,19 +1,6 @@
 import { Chip } from "@mui/material";
 
-const labels: Record<string, string> = {
-  DRAFT: "Черновик",
-  PUBLISHED: "Опубликован",
-  OPEN: "Приём заявок",
-  CLOSED: "Закрыт",
-  ARCHIVED: "В архиве",
-  SUBMITTED: "Отправлена",
-  UNDER_REVIEW: "На рассмотрении",
-  REVISION_REQUIRED: "Требуется доработка",
-  REVISION_SUBMITTED: "Доработка отправлена",
-  APPROVED: "Одобрена",
-  REJECTED: "Отклонена",
-  CANCELLED: "Отменена",
-};
+import { getStatusLabel } from "../utils/labels";
 
 const styles: Record<string, { color: string; backgroundColor: string; borderColor: string }> = {
   DRAFT: { color: "#52646c", backgroundColor: "#edf1f2", borderColor: "#d8e0e3" },
@@ -28,8 +15,11 @@ const styles: Record<string, { color: string; backgroundColor: string; borderCol
   APPROVED: { color: "#236048", backgroundColor: "#e3f2ea", borderColor: "#bfddce" },
   REJECTED: { color: "#8c3636", backgroundColor: "#fae8e8", borderColor: "#eabebe" },
   CANCELLED: { color: "#62686c", backgroundColor: "#eff1f2", borderColor: "#d7dcde" },
+  ACTIVE: { color: "#236048", backgroundColor: "#e3f2ea", borderColor: "#bfddce" },
+  BLOCKED: { color: "#8c3636", backgroundColor: "#fae8e8", borderColor: "#eabebe" },
+  COMPLETED: { color: "#52646c", backgroundColor: "#edf1f2", borderColor: "#d8e0e3" },
 };
 
 export function StatusChip({ status }: { status: string }) {
-  return <Chip size="small" variant="outlined" label={labels[status] ?? status} sx={styles[status]} />;
+  return <Chip size="small" variant="outlined" label={getStatusLabel(status)} sx={styles[status]} />;
 }

@@ -9,9 +9,9 @@ import { useAuth } from "../auth/AuthContext";
 import { LoadingState } from "../components/LoadingState";
 import { StatusChip } from "../components/StatusChip";
 import type { Grant } from "../types";
+import { formatDate } from "../utils/date";
 
 const currency = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" });
-const dateFormat = new Intl.DateTimeFormat("ru-RU");
 
 export function GrantDetailPage() {
   const { id = "" } = useParams();
@@ -33,7 +33,7 @@ export function GrantDetailPage() {
           <Box><StatusChip status={grant.status} /></Box>
         </Stack>
         <Divider sx={{ my: 3 }} />
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 1, sm: 5 }} sx={{ mb: 3 }}><Typography><b>Приём:</b> {dateFormat.format(new Date(grant.start_date))} — {dateFormat.format(new Date(grant.end_date))}</Typography><Typography><b>Максимальная сумма:</b> {currency.format(Number(grant.max_amount))}</Typography></Stack>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 1, sm: 5 }} sx={{ mb: 3 }}><Typography><b>Приём:</b> {formatDate(grant.start_date)} — {formatDate(grant.end_date)}</Typography><Typography><b>Максимальная сумма:</b> {currency.format(Number(grant.max_amount))}</Typography></Stack>
         <Typography sx={{ whiteSpace: "pre-wrap", lineHeight: 1.75 }}>{grant.description}</Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 4 }}>
           {grant.status === "OPEN" && user?.role === "Applicant" && <Button component={RouterLink} to={`/applications/new?grant=${grant.id}`} variant="contained" size="large">Создать заявку</Button>}

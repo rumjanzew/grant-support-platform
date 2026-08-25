@@ -12,9 +12,9 @@ import { LoadingState } from "../components/LoadingState";
 import { StatusChip } from "../components/StatusChip";
 import { useNotify } from "../notifications/NotificationContext";
 import type { Application, Attachment, Grant } from "../types";
+import { formatDateTime } from "../utils/date";
 
 const currency = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" });
-const dateFormat = new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeStyle: "short" });
 const editableStatuses = new Set(["DRAFT", "REVISION_REQUIRED"]);
 
 export function ApplicationDetailPage() {
@@ -127,7 +127,7 @@ export function ApplicationDetailPage() {
       <Stack spacing={3}>
         <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" gap={2}>
-            <Box><Typography variant="overline" color="text.secondary">{application.application_number ?? "Черновик без номера"}</Typography><Typography variant="h4" component="h1">{application.project_name}</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>Версия {application.version} · изменена {dateFormat.format(new Date(application.updated_at))}</Typography></Box>
+            <Box><Typography variant="overline" color="text.secondary">{application.application_number ?? "Черновик без номера"}</Typography><Typography variant="h4" component="h1">{application.project_name}</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>Версия {application.version} · изменена {formatDateTime(application.updated_at)}</Typography></Box>
             <Box><StatusChip status={application.status} /></Box>
           </Stack>
           {grant && <Alert severity="info" sx={{ mt: 3 }}>Грант: <b>{grant.title}</b> · запрошено {currency.format(Number(application.requested_amount))}</Alert>}
@@ -154,7 +154,7 @@ export function ApplicationDetailPage() {
           <Divider sx={{ my: 2 }} />
           {!attachments.length ? <Typography color="text.secondary">Документы пока не загружены.</Typography> : (
             <List disablePadding sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", backgroundColor: "background.paper" }}>
-              {attachments.map((attachment) => <ListItem key={attachment.id} divider secondaryAction={editable ? <IconButton disabled={busy} edge="end" aria-label={`Удалить ${attachment.original_name}`} onClick={() => void removeFile(attachment)}><DeleteOutlineIcon /></IconButton> : undefined}><ListItemText primary={attachment.original_name} secondary={`${(attachment.size_bytes / 1024).toFixed(1)} КБ · ${dateFormat.format(new Date(attachment.uploaded_at))}`} /></ListItem>)}
+              {attachments.map((attachment) => <ListItem key={attachment.id} divider secondaryAction={editable ? <IconButton disabled={busy} edge="end" aria-label={`Удалить ${attachment.original_name}`} onClick={() => void removeFile(attachment)}><DeleteOutlineIcon /></IconButton> : undefined}><ListItemText primary={attachment.original_name} secondary={`${(attachment.size_bytes / 1024).toFixed(1)} КБ · ${formatDateTime(attachment.uploaded_at)}`} /></ListItem>)}
             </List>
           )}
         </Paper>

@@ -18,7 +18,7 @@ const codeMessages: Record<string, string> = {
 export function getApiErrorMessage(error: unknown): string {
   if (!axios.isAxiosError(error)) return "Произошла непредвиденная ошибка.";
   const data = error.response?.data;
-  if (!data) return "Не удалось связаться с сервером. Повторите попытку позже.";
+  if (!data) return "Не удалось связаться с сервером. Попробуйте ещё раз позже.";
   if (typeof data === "string") return data;
   if (typeof data.code === "string" && codeMessages[data.code]) return codeMessages[data.code];
   if (typeof data.detail === "string") return data.detail;

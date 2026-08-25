@@ -10,9 +10,9 @@ import { LoadingState } from "../components/LoadingState";
 import { PageHeader } from "../components/PageHeader";
 import { StatusChip } from "../components/StatusChip";
 import type { Application } from "../types";
+import { formatDate } from "../utils/date";
 
 const currency = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" });
-const dateFormat = new Intl.DateTimeFormat("ru-RU");
 
 export function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -34,7 +34,7 @@ export function ApplicationsPage() {
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between" gap={1}><Typography variant="overline" color="text.secondary">{application.application_number ?? "Номер после отправки"}</Typography><StatusChip status={application.status} /></Stack>
                     <Typography variant="h6" sx={{ mt: 1 }}>{application.project_name}</Typography>
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mt: 2.5, pt: 2, borderTop: 1, borderColor: "divider" }}><Typography variant="body2" fontWeight={700}>Сумма: {currency.format(Number(application.requested_amount))}</Typography><Typography variant="body2" color="text.secondary">Изменена: {dateFormat.format(new Date(application.updated_at))}</Typography></Stack>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mt: 2.5, pt: 2, borderTop: 1, borderColor: "divider" }}><Typography variant="body2" fontWeight={700}>Сумма: {currency.format(Number(application.requested_amount))}</Typography><Typography variant="body2" color="text.secondary">Изменена: {formatDate(application.updated_at)}</Typography></Stack>
                   </CardContent>
                 </CardActionArea>
               </Card>

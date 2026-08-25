@@ -21,6 +21,7 @@ import { useState } from "react";
 import { Link as RouterLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
+import { getRoleLabel } from "../utils/labels";
 
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -47,8 +48,6 @@ export function AppLayout() {
     { label: "Гранты", to: "/grants" },
     ...(user?.role === "Applicant" ? [{ label: "Мои заявки", to: "/applications" }] : []),
   ];
-  const roleLabels: Record<string, string> = { Applicant: "Заявитель", Expert: "Эксперт", Administrator: "Администратор" };
-
   const isActive = (to: string) =>
     location.pathname === to || (
       !["/", "/admin", "/expert"].includes(to)
@@ -76,7 +75,7 @@ export function AppLayout() {
           {user ? (
             <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: "none", sm: "flex" } }}>
               <AccountCircleOutlinedIcon fontSize="small" />
-              <Box sx={{ lineHeight: 1.1 }}><Typography variant="body2" fontWeight={700}>{user.first_name || user.email}</Typography><Typography variant="caption" color="text.secondary">{roleLabels[user.role] ?? user.role}</Typography></Box>
+              <Box sx={{ lineHeight: 1.1 }}><Typography variant="body2" fontWeight={700}>{user.first_name || user.email}</Typography><Typography variant="caption" color="text.secondary">{getRoleLabel(user.role)}</Typography></Box>
               <Button onClick={handleLogout}>Выйти</Button>
             </Stack>
           ) : (
@@ -90,7 +89,7 @@ export function AppLayout() {
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <Box sx={{ width: { xs: 280, sm: 320 } }} role="navigation">
           <Typography variant="h6" sx={{ px: 2.5, py: 2.25, fontWeight: 800, color: "primary.main" }}>GrantSupport</Typography>
-          {user && <Box sx={{ px: 2.5, pb: 2 }}><Typography fontWeight={750}>{[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email}</Typography><Typography variant="body2" color="text.secondary" noWrap>{user.email}</Typography><Chip size="small" label={roleLabels[user.role] ?? user.role} sx={{ mt: 1 }} /></Box>}
+          {user && <Box sx={{ px: 2.5, pb: 2 }}><Typography fontWeight={750}>{[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email}</Typography><Typography variant="body2" color="text.secondary" noWrap>{user.email}</Typography><Chip size="small" label={getRoleLabel(user.role)} sx={{ mt: 1 }} /></Box>}
           <Divider />
           <List sx={{ p: 1.25 }}>
             {links.map((link) => <ListItemButton key={link.to} component={RouterLink} to={link.to} selected={isActive(link.to)} aria-current={isActive(link.to) ? "page" : undefined} onClick={() => setDrawerOpen(false)} sx={{ mb: 0.5, borderRadius: 2, "&.Mui-selected": { color: "primary.main", backgroundColor: "#F0EFFE", borderLeft: "3px solid", borderColor: "primary.main" }, "&.Mui-selected:hover": { backgroundColor: "#E8E7FD" } }}><ListItemText primary={link.label} slotProps={{ primary: { fontWeight: isActive(link.to) ? 750 : 500 } }} /></ListItemButton>)}

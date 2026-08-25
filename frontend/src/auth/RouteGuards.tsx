@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 
 import { LoadingState } from "../components/LoadingState";
+import { ForbiddenPage } from "../components/ErrorStatePage";
 import type { UserRole } from "../types";
 import { useAuth } from "./AuthContext";
 
@@ -27,7 +28,7 @@ export function RoleRoute({
   const location = useLocation();
   if (loading) return <LoadingState />;
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  if (!roles.includes(user.role)) return <Navigate to="/" replace />;
+  if (!roles.includes(user.role)) return <ForbiddenPage />;
   return children;
 }
 

@@ -13,14 +13,10 @@ import { getApiErrorMessage } from "../../api/errors";
 import { LoadingState } from "../../components/LoadingState";
 import { PageHeader } from "../../components/PageHeader";
 import type { AdministratorDashboard } from "../../types";
+import { formatDate } from "../../utils/date";
+import { getStatusLabel } from "../../utils/labels";
 
 ChartJS.register(ArcElement, CategoryScale, Legend, LinearScale, LineElement, PointElement, Tooltip);
-
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Черновики", SUBMITTED: "Поданы", UNDER_REVIEW: "На экспертизе",
-  APPROVED: "Одобрены", REJECTED: "Отклонены", REVISION_REQUIRED: "На доработке",
-  REVISION_SUBMITTED: "Поданы повторно",
-};
 
 export function AdminDashboardPage() {
   const [data, setData] = useState<AdministratorDashboard | null>(null);
@@ -57,7 +53,7 @@ export function AdminDashboardPage() {
               <Typography variant="h6" gutterBottom>Заявки по статусам</Typography>
               <Box sx={{ height: { xs: 280, sm: 340 }, position: "relative" }}>
                 <Doughnut
-                  data={{ labels: statuses.map((item) => STATUS_LABELS[item.status] ?? item.status), datasets: [{ data: statuses.map((item) => item.count), backgroundColor: ["#A5B4FC", "#60A5FA", "#F59E0B", "#34D399", "#F87171", "#FBBF24", "#818CF8"] }] }}
+                  data={{ labels: statuses.map((item) => getStatusLabel(item.status)), datasets: [{ data: statuses.map((item) => item.count), backgroundColor: ["#A5B4FC", "#60A5FA", "#F59E0B", "#34D399", "#F87171", "#FBBF24", "#818CF8"] }] }}
                   options={{ maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }}
                 />
               </Box>
@@ -68,7 +64,7 @@ export function AdminDashboardPage() {
               <Typography variant="h6" gutterBottom>Активность за 14 дней</Typography>
               <Box sx={{ height: { xs: 280, sm: 340 }, position: "relative" }}>
                 <Line
-                  data={{ labels: registrations.map((item) => new Date(`${item.date}T00:00:00`).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })), datasets: [{ label: "Регистрации", data: registrations.map((item) => item.count), borderColor: "#6366F1", backgroundColor: "#6366F1", tension: 0.25 }, { label: "Заявки", data: applications.map((item) => item.count), borderColor: "#4F46E5", backgroundColor: "#4F46E5", tension: 0.25 }] }}
+                  data={{ labels: registrations.map((item) => formatDate(item.date)), datasets: [{ label: "Регистрации", data: registrations.map((item) => item.count), borderColor: "#6366F1", backgroundColor: "#6366F1", tension: 0.25 }, { label: "Заявки", data: applications.map((item) => item.count), borderColor: "#4F46E5", backgroundColor: "#4F46E5", tension: 0.25 }] }}
                   options={{ maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }}
                 />
               </Box>

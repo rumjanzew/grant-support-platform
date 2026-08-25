@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
 import { NotificationProvider } from "./notifications/NotificationContext";
+import { FrontendErrorBoundary } from "./components/FrontendErrorBoundary";
 import { theme } from "./theme";
 import "./styles.css";
 
@@ -14,11 +15,13 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
-        <NotificationProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </NotificationProvider>
+        <FrontendErrorBoundary>
+          <NotificationProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </NotificationProvider>
+        </FrontendErrorBoundary>
       </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,
