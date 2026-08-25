@@ -46,17 +46,17 @@ export function ApplicationCreatePage() {
     <>
       <PageHeader title="Новая заявка" subtitle="Создайте черновик — его можно редактировать до отправки" />
       {!user?.organization ? <OrganizationSetupForm /> : loading ? <LoadingState /> : (
-        <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 } }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3.5, md: 4 }, maxWidth: 840, mx: "auto" }}>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
             <Stack spacing={2.5}>
               {error && <Alert severity="error">{error}</Alert>}
               {!grants.length && <Alert severity="info">Сейчас нет открытых грантов для подачи заявки.</Alert>}
-              <TextField select label="Грант" fullWidth disabled={!grants.length} defaultValue="" error={Boolean(errors.grant)} helperText={errors.grant?.message} {...register("grant", { required: "Выберите грант" })}>
+              <TextField required select label="Грант" fullWidth disabled={!grants.length} defaultValue="" error={Boolean(errors.grant)} helperText={errors.grant?.message} {...register("grant", { required: "Выберите грант" })}>
                 {grants.map((grant) => <MenuItem key={grant.id} value={grant.id}>{grant.title}</MenuItem>)}
               </TextField>
-              <TextField label="Название проекта" fullWidth error={Boolean(errors.project_name)} helperText={errors.project_name?.message} {...register("project_name", { required: "Введите название проекта" })} />
-              <TextField label="Описание проекта" multiline minRows={6} fullWidth error={Boolean(errors.description)} helperText={errors.description?.message} {...register("description", { required: "Добавьте описание проекта" })} />
-              <TextField label="Запрашиваемая сумма, ₽" type="number" fullWidth error={Boolean(errors.requested_amount)} helperText={errors.requested_amount?.message} {...register("requested_amount", { required: "Укажите сумму", min: { value: 1, message: "Сумма должна быть больше нуля" } })} />
+              <TextField required label="Название проекта" fullWidth error={Boolean(errors.project_name)} helperText={errors.project_name?.message} {...register("project_name", { required: "Введите название проекта" })} />
+              <TextField required label="Описание проекта" multiline minRows={6} fullWidth error={Boolean(errors.description)} helperText={errors.description?.message} {...register("description", { required: "Добавьте описание проекта" })} />
+              <TextField required label="Запрашиваемая сумма, ₽" type="number" fullWidth error={Boolean(errors.requested_amount)} helperText={errors.requested_amount?.message} {...register("requested_amount", { required: "Укажите сумму", min: { value: 1, message: "Сумма должна быть больше нуля" } })} />
               <Button type="submit" variant="contained" size="large" disabled={isSubmitting || !grants.length}>{isSubmitting ? "Создаём…" : "Сохранить черновик"}</Button>
             </Stack>
           </Box>

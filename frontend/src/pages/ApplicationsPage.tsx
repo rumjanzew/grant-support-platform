@@ -29,12 +29,12 @@ export function ApplicationsPage() {
         <Grid container spacing={2}>
           {applications.map((application) => (
             <Grid key={application.id} size={{ xs: 12, md: 6 }}>
-              <Card variant="outlined">
-                <CardActionArea component={RouterLink} to={`/applications/${application.id}`}>
+              <Card variant="outlined" sx={{ height: "100%", borderLeft: "4px solid", borderLeftColor: application.status === "REVISION_REQUIRED" ? "warning.main" : application.status === "APPROVED" ? "success.main" : "primary.light" }}>
+                <CardActionArea component={RouterLink} to={`/applications/${application.id}`} sx={{ height: "100%" }}>
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between" gap={1}><Typography variant="overline" color="text.secondary">{application.application_number ?? "Номер после отправки"}</Typography><StatusChip status={application.status} /></Stack>
                     <Typography variant="h6" sx={{ mt: 1 }}>{application.project_name}</Typography>
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mt: 2 }}><Typography variant="body2">Сумма: {currency.format(Number(application.requested_amount))}</Typography><Typography variant="body2">Изменена: {dateFormat.format(new Date(application.updated_at))}</Typography></Stack>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mt: 2.5, pt: 2, borderTop: 1, borderColor: "divider" }}><Typography variant="body2" fontWeight={700}>Сумма: {currency.format(Number(application.requested_amount))}</Typography><Typography variant="body2" color="text.secondary">Изменена: {dateFormat.format(new Date(application.updated_at))}</Typography></Stack>
                   </CardContent>
                 </CardActionArea>
               </Card>

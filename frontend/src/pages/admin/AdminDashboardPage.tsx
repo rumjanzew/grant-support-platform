@@ -49,11 +49,11 @@ export function AdminDashboardPage() {
             ["На экспертизе", data.under_review, <RateReviewIcon />, "/admin/applications?status=UNDER_REVIEW"],
             ["Пользователи", data.users, <GroupsIcon />, "/admin/users"],
             ["Эксперты", data.experts, <GroupsIcon />, "/admin/users"],
-          ].map(([label, value, icon, to]) => <Grid key={String(label)} size={{ xs: 12, sm: 6, lg: 4 }}><Card variant="outlined" sx={{ height: "100%" }}><CardContent><Stack direction="row" justifyContent="space-between" color="primary.main">{icon}<Typography variant="h4">{String(value)}</Typography></Stack><Typography sx={{ mt: 2 }} fontWeight={700}>{String(label)}</Typography><Button component={RouterLink} to={String(to)} sx={{ mt: 1, px: 0 }}>Открыть</Button></CardContent></Card></Grid>)}
+          ].map(([label, value, icon, to]) => <Grid key={String(label)} size={{ xs: 12, sm: 6, lg: 4 }}><Card variant="outlined" sx={{ height: "100%", borderTop: "3px solid", borderTopColor: "primary.main" }}><CardContent><Stack direction="row" justifyContent="space-between" alignItems="center"><Box sx={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: 2.5, color: "primary.main", backgroundColor: "#e8f1f4" }}>{icon}</Box><Typography variant="h4" color="primary.dark">{String(value)}</Typography></Stack><Typography sx={{ mt: 2 }} fontWeight={700}>{String(label)}</Typography><Button component={RouterLink} to={String(to)} sx={{ mt: 1, px: 0 }}>Открыть</Button></CardContent></Card></Grid>)}
         </Grid>
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 5 }}>
-            <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, height: "100%" }}>
+            <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, height: "100%", boxShadow: "0 3px 14px rgba(21, 58, 72, 0.055)" }}>
               <Typography variant="h6" gutterBottom>Заявки по статусам</Typography>
               <Box sx={{ height: { xs: 280, sm: 340 }, position: "relative" }}>
                 <Doughnut
@@ -64,7 +64,7 @@ export function AdminDashboardPage() {
             </Paper>
           </Grid>
           <Grid size={{ xs: 12, lg: 7 }}>
-            <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, height: "100%" }}>
+            <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, height: "100%", boxShadow: "0 3px 14px rgba(21, 58, 72, 0.055)" }}>
               <Typography variant="h6" gutterBottom>Активность за 14 дней</Typography>
               <Box sx={{ height: { xs: 280, sm: 340 }, position: "relative" }}>
                 <Line

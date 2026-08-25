@@ -125,7 +125,7 @@ export function ApplicationDetailPage() {
     <Box>
       <Button component={RouterLink} to="/applications" startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>К заявкам</Button>
       <Stack spacing={3}>
-        <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 } }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderTop: "4px solid", borderTopColor: application.status === "REVISION_REQUIRED" ? "warning.main" : "primary.main" }}>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" gap={2}>
             <Box><Typography variant="overline" color="text.secondary">{application.application_number ?? "Черновик без номера"}</Typography><Typography variant="h4" component="h1">{application.project_name}</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>Версия {application.version} · изменена {dateFormat.format(new Date(application.updated_at))}</Typography></Box>
             <Box><StatusChip status={application.status} /></Box>
@@ -134,26 +134,26 @@ export function ApplicationDetailPage() {
         </Paper>
 
         {error && <Alert severity="error" onClose={() => setError("")}>{error}</Alert>}
-        <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 } }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
           <Typography variant="h5" sx={{ mb: 3 }}>Данные проекта</Typography>
           <Box component="form" onSubmit={handleSubmit(saveDraft)}>
             <Stack spacing={2.5}>
-              <TextField label="Название проекта" fullWidth disabled={!editable} error={Boolean(errors.project_name)} helperText={errors.project_name?.message} {...register("project_name", { required: "Введите название" })} />
-              <TextField label="Описание проекта" fullWidth multiline minRows={6} disabled={!editable} error={Boolean(errors.description)} helperText={errors.description?.message} {...register("description", { required: "Добавьте описание" })} />
-              <TextField label="Запрашиваемая сумма, ₽" type="number" fullWidth disabled={!editable} error={Boolean(errors.requested_amount)} helperText={errors.requested_amount?.message} {...register("requested_amount", { required: "Укажите сумму", min: { value: 1, message: "Сумма должна быть больше нуля" } })} />
+              <TextField required label="Название проекта" fullWidth disabled={!editable} error={Boolean(errors.project_name)} helperText={errors.project_name?.message} {...register("project_name", { required: "Введите название" })} />
+              <TextField required label="Описание проекта" fullWidth multiline minRows={6} disabled={!editable} error={Boolean(errors.description)} helperText={errors.description?.message} {...register("description", { required: "Добавьте описание" })} />
+              <TextField required label="Запрашиваемая сумма, ₽" type="number" fullWidth disabled={!editable} error={Boolean(errors.requested_amount)} helperText={errors.requested_amount?.message} {...register("requested_amount", { required: "Укажите сумму", min: { value: 1, message: "Сумма должна быть больше нуля" } })} />
               {editable && <Button type="submit" variant="outlined" disabled={isSubmitting}>{isSubmitting ? "Сохраняем…" : "Сохранить изменения"}</Button>}
             </Stack>
           </Box>
         </Paper>
 
-        <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 } }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, backgroundColor: "#fbfcfc" }}>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", sm: "center" }} gap={2}>
             <Box><Typography variant="h5">Документы</Typography><Typography variant="body2" color="text.secondary">До 5 файлов, не более 10 МБ каждый</Typography></Box>
             {editable && <Button component="label" startIcon={<UploadFileIcon />} variant="outlined" disabled={busy || attachments.length >= 5}>Загрузить<input hidden type="file" onChange={(event) => { void uploadFile(event.target.files?.[0]); event.target.value = ""; }} /></Button>}
           </Stack>
           <Divider sx={{ my: 2 }} />
           {!attachments.length ? <Typography color="text.secondary">Документы пока не загружены.</Typography> : (
-            <List disablePadding>
+            <List disablePadding sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", backgroundColor: "background.paper" }}>
               {attachments.map((attachment) => <ListItem key={attachment.id} divider secondaryAction={editable ? <IconButton disabled={busy} edge="end" aria-label={`Удалить ${attachment.original_name}`} onClick={() => void removeFile(attachment)}><DeleteOutlineIcon /></IconButton> : undefined}><ListItemText primary={attachment.original_name} secondary={`${(attachment.size_bytes / 1024).toFixed(1)} КБ · ${dateFormat.format(new Date(attachment.uploaded_at))}`} /></ListItem>)}
             </List>
           )}

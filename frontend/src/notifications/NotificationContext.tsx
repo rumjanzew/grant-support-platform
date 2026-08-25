@@ -24,9 +24,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         open={Boolean(notification)}
         autoHideDuration={4500}
         onClose={() => setNotification(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert severity={notification?.severity ?? "success"} variant="filled">
+        <Alert severity={notification?.severity ?? "success"} variant="filled" onClose={() => setNotification(null)} sx={{ minWidth: { sm: 320 }, boxShadow: 6 }}>
           {notification?.message}
         </Alert>
       </Snackbar>

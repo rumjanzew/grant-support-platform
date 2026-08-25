@@ -44,15 +44,15 @@ export function RegisterPage() {
         <Stack spacing={2.5}>
           {error && <Alert severity="error">{error}</Alert>}
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 4 }}><TextField label="Фамилия" fullWidth error={Boolean(errors.last_name)} helperText={errors.last_name?.message} {...register("last_name", { required: "Введите фамилию" })} /></Grid>
-            <Grid size={{ xs: 12, sm: 4 }}><TextField label="Имя" fullWidth error={Boolean(errors.first_name)} helperText={errors.first_name?.message} {...register("first_name", { required: "Введите имя" })} /></Grid>
+            <Grid size={{ xs: 12, sm: 4 }}><TextField required label="Фамилия" fullWidth error={Boolean(errors.last_name)} helperText={errors.last_name?.message} {...register("last_name", { required: "Введите фамилию" })} /></Grid>
+            <Grid size={{ xs: 12, sm: 4 }}><TextField required label="Имя" fullWidth error={Boolean(errors.first_name)} helperText={errors.first_name?.message} {...register("first_name", { required: "Введите имя" })} /></Grid>
             <Grid size={{ xs: 12, sm: 4 }}><TextField label="Отчество" fullWidth {...register("middle_name")} /></Grid>
           </Grid>
-          <TextField label="Телефон" placeholder="+7 912 123-45-67" fullWidth error={Boolean(errors.phone)} helperText={errors.phone?.message} {...register("phone", { required: "Введите телефон" })} />
-          <TextField label="Email" type="email" autoComplete="email" fullWidth error={Boolean(errors.email)} helperText={errors.email?.message} {...register("email", { required: "Введите email" })} />
+          <TextField required label="Телефон" placeholder="+7 912 123-45-67" fullWidth error={Boolean(errors.phone)} helperText={errors.phone?.message} {...register("phone", { required: "Введите телефон" })} />
+          <TextField required label="Email" type="email" autoComplete="email" fullWidth error={Boolean(errors.email)} helperText={errors.email?.message} {...register("email", { required: "Введите email" })} />
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}><TextField label="Пароль" type="password" autoComplete="new-password" fullWidth error={Boolean(errors.password)} helperText={errors.password?.message ?? "Не менее 8 символов"} {...register("password", { required: "Введите пароль", minLength: { value: 8, message: "Минимум 8 символов" } })} /></Grid>
-            <Grid size={{ xs: 12, sm: 6 }}><TextField label="Повторите пароль" type="password" autoComplete="new-password" fullWidth error={Boolean(errors.password_confirm)} helperText={errors.password_confirm?.message} {...register("password_confirm", { required: "Повторите пароль", validate: (value) => value === password || "Пароли не совпадают" })} /></Grid>
+            <Grid size={{ xs: 12, sm: 6 }}><TextField required label="Пароль" type="password" autoComplete="new-password" fullWidth error={Boolean(errors.password)} helperText={errors.password?.message ?? "Не менее 8 символов"} {...register("password", { required: "Введите пароль", minLength: { value: 8, message: "Минимум 8 символов" } })} /></Grid>
+            <Grid size={{ xs: 12, sm: 6 }}><TextField required label="Повторите пароль" type="password" autoComplete="new-password" fullWidth error={Boolean(errors.password_confirm)} helperText={errors.password_confirm?.message} {...register("password_confirm", { required: "Повторите пароль", validate: (value) => value === password || "Пароли не совпадают" })} /></Grid>
           </Grid>
           <Controller name="consent_pd_agreed" control={control} rules={{ required: "Необходимо согласие" }} render={({ field }) => <FormControlLabel control={<Checkbox checked={field.value} onChange={(_, checked) => field.onChange(checked)} />} label="Я согласен(на) на обработку персональных данных" />} />
           {errors.consent_pd_agreed && <Typography color="error" variant="caption">{errors.consent_pd_agreed.message}</Typography>}
