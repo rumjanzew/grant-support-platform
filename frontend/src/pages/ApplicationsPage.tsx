@@ -29,7 +29,7 @@ export function ApplicationsPage() {
         <Grid container spacing={2}>
           {applications.map((application) => (
             <Grid key={application.id} size={{ xs: 12, md: 6 }}>
-              <Card variant="outlined" sx={{ height: "100%", borderLeft: "4px solid", borderLeftColor: application.status === "REVISION_REQUIRED" ? "warning.main" : application.status === "APPROVED" ? "success.main" : "primary.light" }}>
+              <Card variant="outlined" sx={{ height: "100%" }}>
                 <CardActionArea component={RouterLink} to={`/applications/${application.id}`} sx={{ height: "100%" }}>
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between" gap={1}><Typography variant="overline" color="text.secondary">{application.application_number ?? "Номер после отправки"}</Typography><StatusChip status={application.status} /></Stack>

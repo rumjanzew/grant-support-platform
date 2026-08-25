@@ -14,8 +14,8 @@ export function EmptyState({
   actionTo?: string;
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 3.5, md: 5 }, textAlign: "center", backgroundColor: "#fbfcfc" }}>
-      <Box sx={{ mx: "auto", mb: 2, width: 52, height: 52, borderRadius: "50%", display: "grid", placeItems: "center", color: "primary.main", backgroundColor: "#e8f1f4" }}><InboxOutlinedIcon /></Box>
+    <Paper variant="outlined" sx={{ p: { xs: 3.5, md: 5 }, textAlign: "center", backgroundColor: "background.paper" }}>
+      <Box sx={{ mx: "auto", mb: 2, width: 52, height: 52, borderRadius: "50%", display: "grid", placeItems: "center", color: "primary.main", backgroundColor: "primary.light" }}><InboxOutlinedIcon /></Box>
       <Typography variant="h6" gutterBottom>{title}</Typography>
       <Typography color="text.secondary" sx={{ mb: actionLabel ? 3 : 0 }}>{description}</Typography>
       {actionLabel && actionTo && (

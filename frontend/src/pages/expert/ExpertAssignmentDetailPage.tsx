@@ -20,7 +20,7 @@ const currency = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "
 function SectionTitle({ icon, title, description }: { icon: React.ReactNode; title: string; description?: string }) {
   return (
     <Stack direction="row" spacing={1.5} alignItems="center">
-      <Box sx={{ width: 42, height: 42, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 2.5, color: "primary.main", backgroundColor: "#e8f1f4" }}>{icon}</Box>
+      <Box sx={{ width: 42, height: 42, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 2.5, color: "primary.main", backgroundColor: "primary.light" }}>{icon}</Box>
       <Box><Typography variant="h5">{title}</Typography>{description && <Typography variant="body2" color="text.secondary">{description}</Typography>}</Box>
     </Stack>
   );
@@ -75,7 +75,7 @@ export function ExpertAssignmentDetailPage() {
     <Box>
       <Button component={RouterLink} to="/expert/assignments" startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>К назначениям</Button>
       <Stack spacing={3}>
-        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderTop: "4px solid", borderTopColor: "primary.main" }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" gap={2}>
             <Box><Typography variant="overline" color="text.secondary">{application.application_number} · версия {application.version}</Typography><Typography variant="h4" component="h1" sx={{ mt: 0.5 }}>{application.project_name}</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>{application.organization_name}, ИНН {application.organization_inn}</Typography></Box>
             <Box><StatusChip status={application.status} /></Box>
@@ -86,13 +86,13 @@ export function ExpertAssignmentDetailPage() {
           <Typography sx={{ mt: 2, whiteSpace: "pre-wrap", lineHeight: 1.75 }}>{application.description}</Typography>
         </Paper>
 
-        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, backgroundColor: "#fbfcfc" }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, backgroundColor: "background.paper" }}>
           <SectionTitle icon={<AttachFileOutlinedIcon />} title="Документы" description={`${application.attachments.length} файл(а) в заявке`} />
           <Divider sx={{ my: 2.5 }} />
           {!application.attachments.length ? <Typography color="text.secondary">Документы не приложены.</Typography> : <List disablePadding sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", backgroundColor: "background.paper" }}>{application.attachments.map((file) => <ListItem key={file.id} divider><ListItemText primary={file.original_name} secondary={`${(file.size_bytes / 1024).toFixed(1)} КБ · ${file.mime_type}`} /></ListItem>)}</List>}
         </Paper>
 
-        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderTop: "4px solid", borderTopColor: active ? "secondary.main" : "success.main" }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
           <SectionTitle icon={<FactCheckOutlinedIcon />} title="Экспертное заключение" description={active ? "Сохраните черновик или примите итоговое решение" : "Экспертиза завершена"} />
           {!active && assignment.report && <Alert severity="success" sx={{ mt: 2.5 }}>Решение принято: <StatusChip status={assignment.report.decision} /></Alert>}
           <Box component="form" onSubmit={handleSubmit(saveDraft)} sx={{ mt: 3 }}>

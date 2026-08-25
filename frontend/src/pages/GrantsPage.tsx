@@ -43,7 +43,7 @@ export function GrantsPage() {
   return (
     <Box>
       <PageHeader title="Каталог грантов" subtitle="Актуальные меры поддержки для МСП и некоммерческих организаций" />
-      <Paper component="form" variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 3, backgroundColor: "#fbfcfc" }} onSubmit={(event) => { event.preventDefault(); setPage(1); setFilters({ ...draft }); }}>
+      <Paper component="form" variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 3, backgroundColor: "background.paper" }} onSubmit={(event) => { event.preventDefault(); setPage(1); setFilters({ ...draft }); }}>
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Поиск и фильтры</Typography>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 4 }}><TextField size="small" fullWidth label="Поиск" value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }} /></Grid>
@@ -60,14 +60,14 @@ export function GrantsPage() {
           <Grid container spacing={2.5}>
             {data.results.map((grant) => (
               <Grid key={grant.id} size={{ xs: 12, md: 6 }}>
-                <Card variant="outlined" sx={{ height: "100%", display: "flex", flexDirection: "column", borderTop: "3px solid", borderTopColor: grant.status === "OPEN" ? "success.main" : "primary.light" }}>
+                <Card variant="outlined" sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                   <CardContent sx={{ flex: 1 }}>
                     <Stack direction="row" justifyContent="space-between" gap={1} alignItems="flex-start"><Typography variant="overline" color="text.secondary">{grant.category}</Typography><StatusChip status={grant.status} /></Stack>
                     <Typography variant="h6" sx={{ mt: 1 }}>{grant.title}</Typography>
                     <Typography color="text.secondary" sx={{ mt: 1, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{grant.description}</Typography>
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 2.5 }}>
                       <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, color: "text.secondary" }}><CalendarMonthOutlinedIcon fontSize="small" /><Box><Typography variant="caption" display="block">Приём до</Typography><Typography variant="body2" color="text.primary" fontWeight={700}>{dateFormat.format(new Date(grant.end_date))}</Typography></Box></Stack>
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, p: 1.25, borderRadius: 2, color: "primary.main", backgroundColor: "#edf5f6" }}><PaymentsOutlinedIcon /><Box><Typography variant="caption" display="block" color="text.secondary">До</Typography><Typography color="primary.dark" fontWeight={800}>{currency.format(Number(grant.max_amount))}</Typography></Box></Stack>
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, p: 1.25, borderRadius: 2, color: "primary.main", backgroundColor: "primary.light" }}><PaymentsOutlinedIcon /><Box><Typography variant="caption" display="block" color="text.secondary">До</Typography><Typography color="primary.dark" fontWeight={800}>{currency.format(Number(grant.max_amount))}</Typography></Box></Stack>
                     </Stack>
                   </CardContent>
                   <CardActions sx={{ px: 3, py: 2, borderTop: 1, borderColor: "divider" }}><Button component={RouterLink} to={`/grants/${grant.id}`} variant="outlined">Подробнее</Button></CardActions>

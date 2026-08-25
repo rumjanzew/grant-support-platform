@@ -14,18 +14,18 @@ export function HomePage() {
   const { user } = useAuth();
   return (
     <Stack spacing={{ xs: 5, md: 8 }}>
-      <Box sx={{ borderRadius: 4, p: { xs: 3, sm: 5, md: 7 }, color: "white", background: "linear-gradient(135deg, #07556f 0%, #16805f 100%)", overflow: "hidden" }}>
-        <Typography variant="overline" sx={{ opacity: 0.85 }}>Республика Коми</Typography>
+      <Box sx={{ borderRadius: 4, p: { xs: 3, sm: 5, md: 7 }, color: "text.primary", backgroundColor: "background.paper", border: 1, borderColor: "divider", boxShadow: "0 5px 22px rgba(32, 32, 51, 0.055)", overflow: "hidden" }}>
+        <Typography variant="overline" color="primary.main">Республика Коми</Typography>
         <Typography variant="h2" component="h1" sx={{ maxWidth: 760, mt: 1, fontSize: { xs: "2.1rem", sm: "3rem", md: "3.75rem" } }}>
           Поддержка идей, которые развивают регион
         </Typography>
-        <Typography variant="h6" sx={{ maxWidth: 680, mt: 2, fontWeight: 400, opacity: 0.9 }}>
+        <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 680, mt: 2, fontWeight: 400 }}>
           Находите подходящие гранты, готовьте документы и следите за заявкой в одном месте.
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 4 }}>
-          <Button component={RouterLink} to="/grants" variant="contained" color="inherit" endIcon={<ArrowForwardIcon />} sx={{ color: "primary.main" }}>Смотреть гранты</Button>
-          {!user && <Button component={RouterLink} to="/register" variant="outlined" color="inherit">Создать аккаунт</Button>}
-          {user?.role === "Applicant" && <Button component={RouterLink} to="/applications" variant="outlined" color="inherit">Мои заявки</Button>}
+          <Button component={RouterLink} to="/grants" variant="contained" endIcon={<ArrowForwardIcon />}>Смотреть гранты</Button>
+          {!user && <Button component={RouterLink} to="/register" variant="outlined">Создать аккаунт</Button>}
+          {user?.role === "Applicant" && <Button component={RouterLink} to="/applications" variant="outlined">Мои заявки</Button>}
         </Stack>
       </Box>
       <Box>

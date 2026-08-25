@@ -8,6 +8,7 @@ import {
   Container,
   Divider,
   Drawer,
+  Grid,
   IconButton,
   List,
   ListItemButton,
@@ -31,7 +32,7 @@ export function AppLayout() {
     { label: "Гранты", to: "/grants" },
     ...(user?.role === "Applicant" ? [{ label: "Мои заявки", to: "/applications" }] : []),
     ...(user?.role === "Administrator" ? [
-      { label: "Панель", to: "/admin" },
+      { label: "Обзор", to: "/admin" },
       { label: "Управление грантами", to: "/admin/grants" },
       { label: "Заявки", to: "/admin/applications" },
       { label: "Пользователи", to: "/admin/users" },
@@ -40,6 +41,11 @@ export function AppLayout() {
       { label: "Кабинет", to: "/expert" },
       { label: "Назначенные заявки", to: "/expert/assignments" },
     ] : []),
+  ];
+  const footerNavigation = [
+    { label: "Главная", to: "/" },
+    { label: "Гранты", to: "/grants" },
+    ...(user?.role === "Applicant" ? [{ label: "Мои заявки", to: "/applications" }] : []),
   ];
   const roleLabels: Record<string, string> = { Applicant: "Заявитель", Expert: "Эксперт", Administrator: "Администратор" };
 
@@ -56,27 +62,27 @@ export function AppLayout() {
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <AppBar position="sticky" elevation={0}>
+      <AppBar position="sticky" elevation={0} sx={{ backgroundColor: "#FFFFFF", color: "text.primary" }}>
         <Toolbar sx={{ minHeight: { xs: 64, md: 70 } }}>
           <IconButton color="inherit" edge="start" onClick={() => setDrawerOpen(true)} sx={{ display: { md: "none" }, mr: 1 }} aria-label="Открыть меню">
             <MenuIcon />
           </IconButton>
-          <Typography component={RouterLink} to="/" variant="h6" sx={{ color: "inherit", textDecoration: "none", fontWeight: 800, letterSpacing: "-0.02em", flexGrow: { xs: 1, md: 0 }, mr: 3 }}>
-            GrantSupport <Box component="span" sx={{ display: { xs: "none", lg: "inline" }, fontWeight: 500, opacity: 0.72 }}>· Республика Коми</Box>
+          <Typography component={RouterLink} to="/" variant="h6" sx={{ color: "primary.main", textDecoration: "none", fontWeight: 800, letterSpacing: "-0.02em", flexGrow: { xs: 1, md: 0 }, mr: 3 }}>
+            GrantSupport
           </Typography>
           <Stack direction="row" spacing={0.5} sx={{ display: { xs: "none", md: "flex" }, flexGrow: 1 }}>
-            {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} color="inherit" aria-current={isActive(link.to) ? "page" : undefined} sx={{ position: "relative", minWidth: "auto", px: 1.25, fontSize: { md: "0.78rem", lg: "0.875rem" }, opacity: isActive(link.to) ? 1 : 0.82, backgroundColor: isActive(link.to) ? "rgba(255,255,255,0.13)" : "transparent", "&::after": isActive(link.to) ? { content: '""', position: "absolute", left: 10, right: 10, bottom: 3, height: 2, borderRadius: 2, backgroundColor: "currentColor" } : undefined }}>{link.label}</Button>)}
+            {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} aria-current={isActive(link.to) ? "page" : undefined} sx={{ position: "relative", minWidth: "auto", px: 1.25, fontSize: { md: "0.78rem", lg: "0.875rem" }, color: isActive(link.to) ? "primary.main" : "text.primary", backgroundColor: isActive(link.to) ? "#F0EFFE" : "transparent", "&:hover": { backgroundColor: isActive(link.to) ? "#E8E7FD" : "#F6F6FA", color: "primary.main" }, "&::after": isActive(link.to) ? { content: '""', position: "absolute", left: 10, right: 10, bottom: 3, height: 2, borderRadius: 2, backgroundColor: "primary.main" } : undefined }}>{link.label}</Button>)}
           </Stack>
           {user ? (
             <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: "none", sm: "flex" } }}>
               <AccountCircleOutlinedIcon fontSize="small" />
-              <Box sx={{ lineHeight: 1.1 }}><Typography variant="body2" fontWeight={700}>{user.first_name || user.email}</Typography><Typography variant="caption" sx={{ opacity: 0.75 }}>{roleLabels[user.role] ?? user.role}</Typography></Box>
-              <Button color="inherit" onClick={handleLogout}>Выйти</Button>
+              <Box sx={{ lineHeight: 1.1 }}><Typography variant="body2" fontWeight={700}>{user.first_name || user.email}</Typography><Typography variant="caption" color="text.secondary">{roleLabels[user.role] ?? user.role}</Typography></Box>
+              <Button onClick={handleLogout}>Выйти</Button>
             </Stack>
           ) : (
             <Stack direction="row" spacing={1} sx={{ display: { xs: "none", sm: "flex" } }}>
-              <Button component={RouterLink} to="/login" color="inherit">Войти</Button>
-              <Button component={RouterLink} to="/register" color="inherit" variant="outlined">Регистрация</Button>
+              <Button component={RouterLink} to="/login">Войти</Button>
+              <Button component={RouterLink} to="/register" variant="outlined">Регистрация</Button>
             </Stack>
           )}
         </Toolbar>
@@ -87,7 +93,7 @@ export function AppLayout() {
           {user && <Box sx={{ px: 2.5, pb: 2 }}><Typography fontWeight={750}>{[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email}</Typography><Typography variant="body2" color="text.secondary" noWrap>{user.email}</Typography><Chip size="small" label={roleLabels[user.role] ?? user.role} sx={{ mt: 1 }} /></Box>}
           <Divider />
           <List sx={{ p: 1.25 }}>
-            {links.map((link) => <ListItemButton key={link.to} component={RouterLink} to={link.to} selected={isActive(link.to)} aria-current={isActive(link.to) ? "page" : undefined} onClick={() => setDrawerOpen(false)} sx={{ mb: 0.5, borderRadius: 2, "&.Mui-selected": { color: "primary.dark", backgroundColor: "#e6f0f3", borderLeft: "3px solid", borderColor: "primary.main" } }}><ListItemText primary={link.label} slotProps={{ primary: { fontWeight: isActive(link.to) ? 750 : 500 } }} /></ListItemButton>)}
+            {links.map((link) => <ListItemButton key={link.to} component={RouterLink} to={link.to} selected={isActive(link.to)} aria-current={isActive(link.to) ? "page" : undefined} onClick={() => setDrawerOpen(false)} sx={{ mb: 0.5, borderRadius: 2, "&.Mui-selected": { color: "primary.main", backgroundColor: "#F0EFFE", borderLeft: "3px solid", borderColor: "primary.main" }, "&.Mui-selected:hover": { backgroundColor: "#E8E7FD" } }}><ListItemText primary={link.label} slotProps={{ primary: { fontWeight: isActive(link.to) ? 750 : 500 } }} /></ListItemButton>)}
           </List>
           <Divider />
           <List>
@@ -98,8 +104,28 @@ export function AppLayout() {
       <Container component="main" maxWidth="lg" sx={{ flex: 1, py: { xs: 3, md: 5 }, px: { xs: 2, sm: 3 } }}>
         <Outlet />
       </Container>
-      <Box component="footer" sx={{ borderTop: 1, borderColor: "divider", backgroundColor: "background.paper", py: 3, mt: 4 }}>
-        <Container maxWidth="lg"><Typography variant="body2" color="text.secondary">Учебная платформа грантовой поддержки Республики Коми</Typography></Container>
+      <Box component="footer" sx={{ backgroundColor: "#24214D", color: "#FFFFFF", py: { xs: 4, md: 5 }, mt: 4 }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={{ xs: 4, md: 6 }}>
+            <Grid size={{ xs: 12, md: 5 }}>
+              <Typography variant="h6" fontWeight={800} sx={{ color: "#FFFFFF", mb: 1.5 }}>GrantSupport</Typography>
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.72)", maxWidth: 340, whiteSpace: "pre-line" }}>Платформа грантовой поддержки{`\n`}субъектов МСП и НКО{`\n`}Республики Коми</Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Typography variant="subtitle2" fontWeight={750} sx={{ mb: 1.5 }}>Навигация</Typography>
+              <Stack spacing={1.1}>{footerNavigation.map((link) => <Typography key={link.to} component={RouterLink} to={link.to} variant="body2" sx={{ color: "rgba(255,255,255,0.72)", textDecoration: "none", width: "fit-content", "&:hover": { color: "#FFFFFF", textDecoration: "underline" } }}>{link.label}</Typography>)}</Stack>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Typography variant="subtitle2" fontWeight={750} sx={{ mb: 1.5 }}>Информация</Typography>
+              <Stack spacing={1.1}>{["О платформе", "Поддержка", "Политика конфиденциальности"].map((item) => <Typography key={item} variant="body2" sx={{ color: "rgba(255,255,255,0.72)" }}>{item}</Typography>)}</Stack>
+            </Grid>
+          </Grid>
+          <Divider sx={{ my: 3, borderColor: "rgba(255,255,255,0.14)" }} />
+          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
+            <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.62)" }}>© 2026 GrantSupport</Typography>
+            <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.62)" }}>Учебный проект</Typography>
+          </Stack>
+        </Container>
       </Box>
     </Box>
   );

@@ -6,7 +6,7 @@
 
 html {
   min-width: 0;
-  background: #f4f7f8;
+  background: #F7F7FB;
 }
 
 body {
@@ -24,6 +24,6 @@ a {
 }
 
 ::selection {
-  background: #cfe2e8;
-  color: #172b35;
+  background: #E0E7FF;
+  color: #202033;
 }
