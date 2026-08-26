@@ -1,9 +1,12 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import {
   AppBar,
   Box,
   Button,
+  ButtonBase,
   Chip,
   Container,
   Divider,
@@ -12,7 +15,10 @@ import {
   IconButton,
   List,
   ListItemButton,
+  ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
   Stack,
   Toolbar,
   Typography,
@@ -25,6 +31,7 @@ import { getRoleLabel } from "../utils/labels";
 
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,7 +49,6 @@ export function AppLayout() {
       { label: "Кабинет", to: "/expert" },
       { label: "Назначенные заявки", to: "/expert/assignments" },
     ] : []),
-    ...(user ? [{ label: "Профиль", to: "/profile" }] : []),
   ];
   const footerNavigation = [
     { label: "Главная", to: "/" },
@@ -56,8 +62,14 @@ export function AppLayout() {
     );
 
   const handleLogout = async () => {
+    setUserMenuAnchor(null);
     await logout();
     navigate("/");
+  };
+
+  const openProfile = () => {
+    setUserMenuAnchor(null);
+    navigate("/profile");
   };
 
   return (
@@ -74,11 +86,22 @@ export function AppLayout() {
             {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} aria-current={isActive(link.to) ? "page" : undefined} sx={{ position: "relative", minWidth: "auto", px: 1.25, fontSize: { md: "0.78rem", lg: "0.875rem" }, color: isActive(link.to) ? "primary.main" : "text.primary", backgroundColor: isActive(link.to) ? "#F0EFFE" : "transparent", "&:hover": { backgroundColor: isActive(link.to) ? "#E8E7FD" : "#F6F6FA", color: "primary.main" }, "&::after": isActive(link.to) ? { content: '""', position: "absolute", left: 10, right: 10, bottom: 3, height: 2, borderRadius: 2, backgroundColor: "primary.main" } : undefined }}>{link.label}</Button>)}
           </Stack>
           {user ? (
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: "none", sm: "flex" } }}>
-              <AccountCircleOutlinedIcon fontSize="small" />
-              <Box sx={{ lineHeight: 1.1 }}><Typography variant="body2" fontWeight={700}>{user.first_name || user.email}</Typography><Typography variant="caption" color="text.secondary">{getRoleLabel(user.role)}</Typography></Box>
-              <Button onClick={handleLogout}>Выйти</Button>
-            </Stack>
+            <>
+              <ButtonBase
+                aria-label="Открыть меню пользователя"
+                aria-haspopup="menu"
+                aria-expanded={Boolean(userMenuAnchor)}
+                onClick={(event) => setUserMenuAnchor(event.currentTarget)}
+                sx={{ display: "flex", alignItems: "center", gap: 1, p: 0.75, pr: { xs: 0.75, sm: 1.25 }, borderRadius: 2, textAlign: "left", "&:hover": { backgroundColor: "#F6F6FA" } }}
+              >
+                <AccountCircleOutlinedIcon color="primary" />
+                <Box sx={{ display: { xs: "none", sm: "block" }, lineHeight: 1.1 }}><Typography variant="body2" fontWeight={700}>{user.first_name || user.email}</Typography><Typography variant="caption" color="text.secondary">{getRoleLabel(user.role)} · {user.email}</Typography></Box>
+              </ButtonBase>
+              <Menu anchorEl={userMenuAnchor} open={Boolean(userMenuAnchor)} onClose={() => setUserMenuAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 190 } } }}>
+                <MenuItem onClick={openProfile}><ListItemIcon><PersonOutlineIcon fontSize="small" /></ListItemIcon>Профиль</MenuItem>
+                <MenuItem onClick={() => void handleLogout()}><ListItemIcon><LogoutOutlinedIcon fontSize="small" /></ListItemIcon>Выйти</MenuItem>
+              </Menu>
+            </>
           ) : (
             <Stack direction="row" spacing={1} sx={{ display: { xs: "none", sm: "flex" } }}>
               <Button component={RouterLink} to="/login">Войти</Button>
@@ -95,10 +118,7 @@ export function AppLayout() {
           <List sx={{ p: 1.25 }}>
             {links.map((link) => <ListItemButton key={link.to} component={RouterLink} to={link.to} selected={isActive(link.to)} aria-current={isActive(link.to) ? "page" : undefined} onClick={() => setDrawerOpen(false)} sx={{ mb: 0.5, borderRadius: 2, "&.Mui-selected": { color: "primary.main", backgroundColor: "#F0EFFE", borderLeft: "3px solid", borderColor: "primary.main" }, "&.Mui-selected:hover": { backgroundColor: "#E8E7FD" } }}><ListItemText primary={link.label} slotProps={{ primary: { fontWeight: isActive(link.to) ? 750 : 500 } }} /></ListItemButton>)}
           </List>
-          <Divider />
-          <List>
-            {user ? <ListItemButton onClick={handleLogout}><ListItemText primary="Выйти" secondary={user.email} /></ListItemButton> : <><ListItemButton component={RouterLink} to="/login"><ListItemText primary="Войти" /></ListItemButton><ListItemButton component={RouterLink} to="/register"><ListItemText primary="Регистрация" /></ListItemButton></>}
-          </List>
+          {!user && <><Divider /><List><ListItemButton component={RouterLink} to="/login"><ListItemText primary="Войти" /></ListItemButton><ListItemButton component={RouterLink} to="/register"><ListItemText primary="Регистрация" /></ListItemButton></List></>}
         </Box>
       </Drawer>
       <Container component="main" maxWidth="lg" sx={{ flex: 1, py: { xs: 3, md: 5 }, px: { xs: 2, sm: 3 } }}>

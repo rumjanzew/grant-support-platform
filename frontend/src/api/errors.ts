@@ -19,7 +19,13 @@ export function getApiErrorMessage(error: unknown): string {
   if (!axios.isAxiosError(error)) return "Произошла непредвиденная ошибка.";
   const data = error.response?.data;
   if (!data) return "Не удалось связаться с сервером. Попробуйте ещё раз позже.";
-  if (typeof data === "string") return data;
+  if (typeof data === "string") {
+    const contentType = String(error.response?.headers["content-type"] ?? "");
+    if (contentType.includes("text/html") || /<!doctype html|<html/i.test(data)) {
+      return "Сервер временно не может обработать запрос. Попробуйте ещё раз позже.";
+    }
+    return data;
+  }
   if (typeof data.code === "string" && codeMessages[data.code]) return codeMessages[data.code];
   if (typeof data.detail === "string") return data.detail;
   for (const value of Object.values(data as Record<string, unknown>)) {
