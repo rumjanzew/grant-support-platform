@@ -1,7 +1,9 @@
 import { Route, Routes } from "react-router-dom";
 
 import { AdministratorRoute, ApplicantRoute, AuthenticatedRoute, ExpertRoute, GuestRoute } from "./auth/RouteGuards";
+import { AdminLayout } from "./components/AdminLayout";
 import { AppLayout } from "./components/AppLayout";
+import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { ApplicationCreatePage } from "./pages/ApplicationCreatePage";
 import { ApplicationDetailPage } from "./pages/ApplicationDetailPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
@@ -25,30 +27,36 @@ import { ExpertDashboardPage } from "./pages/expert/ExpertDashboardPage";
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="grants" element={<GrantsPage />} />
-        <Route path="grants/:id" element={<GrantDetailPage />} />
-        <Route path="login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-        <Route path="register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-        <Route path="password-reset" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
-        <Route path="password-reset/confirm" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
-        <Route path="profile" element={<AuthenticatedRoute><ProfilePage /></AuthenticatedRoute>} />
-        <Route path="applications" element={<ApplicantRoute><ApplicationsPage /></ApplicantRoute>} />
-        <Route path="applications/new" element={<ApplicantRoute><ApplicationCreatePage /></ApplicantRoute>} />
-        <Route path="applications/:id" element={<ApplicantRoute><ApplicationDetailPage /></ApplicantRoute>} />
-        <Route path="admin" element={<AdministratorRoute><AdminDashboardPage /></AdministratorRoute>} />
-        <Route path="admin/grants" element={<AdministratorRoute><AdminGrantsPage /></AdministratorRoute>} />
-        <Route path="admin/grants/new" element={<AdministratorRoute><AdminGrantFormPage /></AdministratorRoute>} />
-        <Route path="admin/grants/:id/edit" element={<AdministratorRoute><AdminGrantFormPage /></AdministratorRoute>} />
-        <Route path="admin/applications" element={<AdministratorRoute><AdminApplicationsPage /></AdministratorRoute>} />
-        <Route path="admin/users" element={<AdministratorRoute><AdminUsersPage /></AdministratorRoute>} />
-        <Route path="expert" element={<ExpertRoute><ExpertDashboardPage /></ExpertRoute>} />
-        <Route path="expert/assignments" element={<ExpertRoute><ExpertAssignmentsPage /></ExpertRoute>} />
-        <Route path="expert/assignments/:id" element={<ExpertRoute><ExpertAssignmentDetailPage /></ExpertRoute>} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="grants" element={<GrantsPage />} />
+          <Route path="grants/:id" element={<GrantDetailPage />} />
+          <Route path="login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+          <Route path="register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+          <Route path="password-reset" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+          <Route path="password-reset/confirm" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+          <Route path="profile" element={<AuthenticatedRoute><ProfilePage /></AuthenticatedRoute>} />
+          <Route path="applications" element={<ApplicantRoute><ApplicationsPage /></ApplicantRoute>} />
+          <Route path="applications/new" element={<ApplicantRoute><ApplicationCreatePage /></ApplicantRoute>} />
+          <Route path="applications/:id" element={<ApplicantRoute><ApplicationDetailPage /></ApplicantRoute>} />
+          <Route path="expert" element={<ExpertRoute><ExpertDashboardPage /></ExpertRoute>} />
+          <Route path="expert/assignments" element={<ExpertRoute><ExpertAssignmentsPage /></ExpertRoute>} />
+          <Route path="expert/assignments/:id" element={<ExpertRoute><ExpertAssignmentDetailPage /></ExpertRoute>} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+        <Route path="admin" element={<AdministratorRoute><AdminLayout /></AdministratorRoute>}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="grants" element={<AdminGrantsPage />} />
+          <Route path="grants/new" element={<AdminGrantFormPage />} />
+          <Route path="grants/:id/edit" element={<AdminGrantFormPage />} />
+          <Route path="applications" element={<AdminApplicationsPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+      <ScrollToTopButton />
+    </>
   );
 }

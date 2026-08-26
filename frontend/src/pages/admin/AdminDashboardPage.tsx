@@ -34,7 +34,7 @@ export function AdminDashboardPage() {
   const applications = data?.applications_by_day ?? [];
   return (
     <>
-      <PageHeader title="Панель администратора" subtitle="Управление грантами, заявками и пользователями" />
+      <PageHeader title="Обзор" subtitle="Управление грантами, заявками и пользователями" />
       {error && <Alert severity="error" action={<Button color="inherit" onClick={load}>Повторить</Button>}>{error}</Alert>}
       {data && <Stack spacing={3}>
         <Grid container spacing={2.5}>
@@ -45,7 +45,7 @@ export function AdminDashboardPage() {
             ["На экспертизе", data.under_review, <RateReviewIcon />, "/admin/applications?status=UNDER_REVIEW"],
             ["Пользователи", data.users, <GroupsIcon />, "/admin/users"],
             ["Эксперты", data.experts, <GroupsIcon />, "/admin/users"],
-          ].map(([label, value, icon, to]) => <Grid key={String(label)} size={{ xs: 12, sm: 6, lg: 4 }}><Card variant="outlined" sx={{ height: "100%" }}><CardContent><Stack direction="row" justifyContent="space-between" alignItems="center"><Box sx={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: 2.5, color: "primary.main", backgroundColor: "primary.light" }}>{icon}</Box><Typography variant="h4" color="primary.dark">{String(value)}</Typography></Stack><Typography sx={{ mt: 2 }} fontWeight={700}>{String(label)}</Typography><Button component={RouterLink} to={String(to)} sx={{ mt: 1, px: 0 }}>Открыть</Button></CardContent></Card></Grid>)}
+          ].map(([label, value, icon, to]) => <Grid key={String(label)} size={{ xs: 12, sm: 6, lg: 4 }} sx={{ display: "flex" }}><Card variant="outlined" sx={{ height: "100%", width: "100%" }}><CardContent sx={{ height: "100%", display: "flex", flexDirection: "column" }}><Stack direction="row" justifyContent="space-between" alignItems="center"><Box sx={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: 2.5, color: "primary.main", backgroundColor: "primary.light" }}>{icon}</Box><Typography variant="h4" color="primary.dark">{String(value)}</Typography></Stack><Typography sx={{ mt: 2 }} fontWeight={700}>{String(label)}</Typography><Button component={RouterLink} to={String(to)} sx={{ mt: "auto", pt: 1, px: 0, alignSelf: "flex-start" }}>Открыть</Button></CardContent></Card></Grid>)}
         </Grid>
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 5 }}>

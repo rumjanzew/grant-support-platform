@@ -28,13 +28,13 @@ export function ApplicationsPage() {
       {loading ? <LoadingState /> : !applications.length ? <EmptyState title="Заявок пока нет" description="Выберите открытый грант и создайте первую заявку." actionLabel="Создать заявку" actionTo="/applications/new" /> : (
         <Grid container spacing={2}>
           {applications.map((application) => (
-            <Grid key={application.id} size={{ xs: 12, md: 6 }}>
-              <Card variant="outlined" sx={{ height: "100%" }}>
-                <CardActionArea component={RouterLink} to={`/applications/${application.id}`} sx={{ height: "100%" }}>
-                  <CardContent>
+            <Grid key={application.id} size={{ xs: 12, md: 6 }} sx={{ display: "flex" }}>
+              <Card variant="outlined" sx={{ height: "100%", width: "100%", display: "flex" }}>
+                <CardActionArea component={RouterLink} to={`/applications/${application.id}`} sx={{ height: "100%", display: "flex", alignItems: "stretch" }}>
+                  <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <Stack direction="row" justifyContent="space-between" gap={1}><Typography variant="overline" color="text.secondary">{application.application_number ?? "Номер после отправки"}</Typography><StatusChip status={application.status} /></Stack>
                     <Typography variant="h6" sx={{ mt: 1 }}>{application.project_name}</Typography>
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mt: 2.5, pt: 2, borderTop: 1, borderColor: "divider" }}><Typography variant="body2" fontWeight={700}>Сумма: {currency.format(Number(application.requested_amount))}</Typography><Typography variant="body2" color="text.secondary">Изменена: {formatDate(application.updated_at)}</Typography></Stack>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mt: "auto", pt: 2, borderTop: 1, borderColor: "divider" }}><Typography variant="body2" fontWeight={700}>Сумма: {currency.format(Number(application.requested_amount))}</Typography><Typography variant="body2" color="text.secondary">Изменена: {formatDate(application.updated_at)}</Typography></Stack>
                   </CardContent>
                 </CardActionArea>
               </Card>

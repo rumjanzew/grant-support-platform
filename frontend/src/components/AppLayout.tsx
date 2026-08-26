@@ -1,12 +1,8 @@
 import MenuIcon from "@mui/icons-material/Menu";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import {
   AppBar,
   Box,
   Button,
-  ButtonBase,
   Chip,
   Container,
   Divider,
@@ -15,36 +11,27 @@ import {
   IconButton,
   List,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
-  Menu,
-  MenuItem,
   Stack,
   Toolbar,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { Link as RouterLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
 import { getRoleLabel } from "../utils/labels";
+import { UserMenu } from "./UserMenu";
 
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const location = useLocation();
   const links = [
     { label: "Главная", to: "/" },
     { label: "Гранты", to: "/grants" },
     ...(user?.role === "Applicant" ? [{ label: "Мои заявки", to: "/applications" }] : []),
-    ...(user?.role === "Administrator" ? [
-      { label: "Обзор", to: "/admin" },
-      { label: "Управление грантами", to: "/admin/grants" },
-      { label: "Заявки", to: "/admin/applications" },
-      { label: "Пользователи", to: "/admin/users" },
-    ] : []),
+    ...(user?.role === "Administrator" ? [{ label: "Администрирование", to: "/admin" }] : []),
     ...(user?.role === "Expert" ? [
       { label: "Кабинет", to: "/expert" },
       { label: "Назначенные заявки", to: "/expert/assignments" },
@@ -61,17 +48,6 @@ export function AppLayout() {
       && location.pathname.startsWith(`${to}/`)
     );
 
-  const handleLogout = async () => {
-    setUserMenuAnchor(null);
-    await logout();
-    navigate("/");
-  };
-
-  const openProfile = () => {
-    setUserMenuAnchor(null);
-    navigate("/profile");
-  };
-
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <AppBar position="sticky" elevation={0} sx={{ backgroundColor: "#FFFFFF", color: "text.primary" }}>
@@ -86,22 +62,7 @@ export function AppLayout() {
             {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} aria-current={isActive(link.to) ? "page" : undefined} sx={{ position: "relative", minWidth: "auto", px: 1.25, fontSize: { md: "0.78rem", lg: "0.875rem" }, color: isActive(link.to) ? "primary.main" : "text.primary", backgroundColor: isActive(link.to) ? "#F0EFFE" : "transparent", "&:hover": { backgroundColor: isActive(link.to) ? "#E8E7FD" : "#F6F6FA", color: "primary.main" }, "&::after": isActive(link.to) ? { content: '""', position: "absolute", left: 10, right: 10, bottom: 3, height: 2, borderRadius: 2, backgroundColor: "primary.main" } : undefined }}>{link.label}</Button>)}
           </Stack>
           {user ? (
-            <>
-              <ButtonBase
-                aria-label="Открыть меню пользователя"
-                aria-haspopup="menu"
-                aria-expanded={Boolean(userMenuAnchor)}
-                onClick={(event) => setUserMenuAnchor(event.currentTarget)}
-                sx={{ display: "flex", alignItems: "center", gap: 1, p: 0.75, pr: { xs: 0.75, sm: 1.25 }, borderRadius: 2, textAlign: "left", "&:hover": { backgroundColor: "#F6F6FA" } }}
-              >
-                <AccountCircleOutlinedIcon color="primary" />
-                <Box sx={{ display: { xs: "none", sm: "block" }, lineHeight: 1.1 }}><Typography variant="body2" fontWeight={700}>{user.first_name || user.email}</Typography><Typography variant="caption" color="text.secondary">{getRoleLabel(user.role)} · {user.email}</Typography></Box>
-              </ButtonBase>
-              <Menu anchorEl={userMenuAnchor} open={Boolean(userMenuAnchor)} onClose={() => setUserMenuAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 190 } } }}>
-                <MenuItem onClick={openProfile}><ListItemIcon><PersonOutlineIcon fontSize="small" /></ListItemIcon>Профиль</MenuItem>
-                <MenuItem onClick={() => void handleLogout()}><ListItemIcon><LogoutOutlinedIcon fontSize="small" /></ListItemIcon>Выйти</MenuItem>
-              </Menu>
-            </>
+            <UserMenu />
           ) : (
             <Stack direction="row" spacing={1} sx={{ display: { xs: "none", sm: "flex" } }}>
               <Button component={RouterLink} to="/login">Войти</Button>
