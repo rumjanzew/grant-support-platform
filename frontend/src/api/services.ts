@@ -57,8 +57,8 @@ export interface GrantParams {
 }
 
 export const grantsApi = {
-  list: (params: GrantParams = {}) =>
-    apiClient.get<PaginatedResponse<Grant>>("/grants/", { params }),
+  list: (params: GrantParams = {}, signal?: AbortSignal) =>
+    apiClient.get<PaginatedResponse<Grant>>("/grants/", { params, signal }),
   detail: (id: string) => apiClient.get<Grant>(`/grants/${id}/`),
   create: (data: Omit<Grant, "id" | "created_by" | "created_at" | "updated_at">) =>
     apiClient.post<Grant>("/grants/", data),

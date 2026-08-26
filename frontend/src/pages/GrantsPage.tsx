@@ -2,7 +2,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { Alert, Box, Button, Card, CardActions, CardContent, Grid, InputAdornment, MenuItem, Pagination, Paper, Stack, TextField, Typography } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
 import { getApiErrorMessage } from "../api/errors";
@@ -17,51 +17,76 @@ import { formatDate } from "../utils/date";
 
 const currency = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 });
 
+const initialFilters = { search: "", status: "", category: "", ordering: "-created_at", deadline_to: "" };
+
 export function GrantsPage() {
   const [data, setData] = useState<PaginatedResponse<Grant> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [page, setPage] = useState(1);
-  const [draft, setDraft] = useState({ search: "", status: "", category: "", ordering: "-created_at", deadline_to: "" });
-  const [filters, setFilters] = useState(draft);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [catalogState, setCatalogState] = useState({ page: 1, filters: initialFilters });
+  const requestIdRef = useRef(0);
+  const { filters, page } = catalogState;
 
-  const loadGrants = useCallback(async () => {
+  const loadGrants = useCallback(async (signal?: AbortSignal) => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError("");
     try {
       const params: GrantParams = { page, page_size: 10, ...filters };
-      const response = await grantsApi.list(params);
+      const response = await grantsApi.list(params, signal);
+      if (signal?.aborted || requestId !== requestIdRef.current) return;
       setData(response.data);
     } catch (requestError) {
+      if (signal?.aborted || requestId !== requestIdRef.current) return;
       setError(getApiErrorMessage(requestError));
     } finally {
-      setLoading(false);
+      if (!signal?.aborted && requestId === requestIdRef.current) setLoading(false);
     }
   }, [filters, page]);
 
-  useEffect(() => { void loadGrants(); }, [loadGrants]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void loadGrants(controller.signal);
+    return () => controller.abort();
+  }, [loadGrants]);
 
-  const changeOrdering = (ordering: string) => {
-    setDraft((current) => ({ ...current, ordering }));
-    setFilters((current) => ({ ...current, ordering }));
-    setPage(1);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setCatalogState((current) => {
+        if (current.filters.search === search && current.filters.category === category) return current;
+        return { page: 1, filters: { ...current.filters, search, category } };
+      });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [category, search]);
+
+  const changeFilter = (name: "status" | "ordering" | "deadline_to", value: string) => {
+    setCatalogState((current) => ({ page: 1, filters: { ...current.filters, [name]: value } }));
+  };
+
+  const resetFilters = () => {
+    setSearch("");
+    setCategory("");
+    setCatalogState({ page: 1, filters: initialFilters });
   };
 
   return (
     <Box>
       <PageHeader title="Каталог грантов" subtitle="Актуальные меры поддержки для МСП и некоммерческих организаций" />
-      <Paper component="form" variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 3, backgroundColor: "background.paper" }} onSubmit={(event) => { event.preventDefault(); setPage(1); setFilters({ ...draft }); }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 3, backgroundColor: "background.paper" }}>
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Поиск и фильтры</Typography>
         <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, md: 4 }}><TextField size="small" fullWidth label="Поиск" value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }} /></Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField select size="small" fullWidth label="Статус" value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}><MenuItem value="">Все</MenuItem><MenuItem value="OPEN">Приём заявок</MenuItem><MenuItem value="PUBLISHED">Опубликован</MenuItem></TextField></Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField size="small" fullWidth label="Категория" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} /></Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}><RussianDateField size="small" label="Дедлайн до" value={draft.deadline_to} onChange={(deadline_to) => setDraft((current) => ({ ...current, deadline_to }))} /></Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField select size="small" fullWidth label="Сортировка" value={draft.ordering} onChange={(e) => changeOrdering(e.target.value)}><MenuItem value="-created_at">Сначала новые</MenuItem><MenuItem value="end_date">По сроку</MenuItem><MenuItem value="-max_amount">По сумме</MenuItem><MenuItem value="title">По названию</MenuItem></TextField></Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}><Button fullWidth type="submit" variant="contained">Применить</Button></Grid>
+          <Grid size={{ xs: 12, md: 4 }}><TextField size="small" fullWidth label="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }} /></Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField select size="small" fullWidth label="Статус" value={filters.status} onChange={(e) => changeFilter("status", e.target.value)}><MenuItem value="">Все</MenuItem><MenuItem value="OPEN">Приём заявок</MenuItem><MenuItem value="PUBLISHED">Опубликован</MenuItem></TextField></Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField size="small" fullWidth label="Категория" value={category} onChange={(e) => setCategory(e.target.value)} /></Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}><RussianDateField size="small" label="Дедлайн до" value={filters.deadline_to} onChange={(deadlineTo) => changeFilter("deadline_to", deadlineTo)} /></Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField select size="small" fullWidth label="Сортировка" value={filters.ordering} onChange={(e) => changeFilter("ordering", e.target.value)}><MenuItem value="-created_at">Сначала новые</MenuItem><MenuItem value="end_date">По сроку</MenuItem><MenuItem value="-max_amount">По сумме</MenuItem><MenuItem value="title">По названию</MenuItem></TextField></Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}><Button fullWidth variant="outlined" onClick={resetFilters}>Сбросить</Button></Grid>
         </Grid>
       </Paper>
-      {error ? <Alert severity="error" action={<Button color="inherit" onClick={loadGrants}>Повторить</Button>} sx={{ mb: 3 }}>{error}</Alert> : loading ? <LoadingState label="Загружаем гранты…" /> : !data?.results.length ? <EmptyState title="Гранты не найдены" description="Измените параметры поиска или вернитесь позже." /> : (
+      {error ? <Alert severity="error" action={<Button color="inherit" onClick={() => void loadGrants()}>Повторить</Button>} sx={{ mb: 3 }}>{error}</Alert> : loading ? <LoadingState label="Загружаем гранты…" /> : !data?.results.length ? <EmptyState title="Гранты не найдены" description="Измените параметры поиска или вернитесь позже." /> : (
         <>
           <Grid container spacing={2.5}>
             {data.results.map((grant) => (
@@ -81,7 +106,7 @@ export function GrantsPage() {
               </Grid>
             ))}
           </Grid>
-          {data.count > 10 && <Stack alignItems="center" sx={{ mt: 4 }}><Pagination page={page} count={Math.ceil(data.count / 10)} onChange={(_, value) => setPage(value)} color="primary" /></Stack>}
+          {data.count > 10 && <Stack alignItems="center" sx={{ mt: 4 }}><Pagination page={page} count={Math.ceil(data.count / 10)} onChange={(_, value) => setCatalogState((current) => ({ ...current, page: value }))} color="primary" /></Stack>}
         </>
       )}
     </Box>
