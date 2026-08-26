@@ -31,3 +31,8 @@ export function getRoleLabel(role: UserRole): string {
 export function getStatusLabel(status: string): string {
   return statusLabels[status] ?? status;
 }
+
+export const organizationStatusLabels: Record<string, string> = {
+  ACTIVE: "Активна",
+  BLOCKED: "Заблокирована",
+};

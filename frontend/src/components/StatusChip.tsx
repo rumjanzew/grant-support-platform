@@ -20,6 +20,6 @@ const styles: Record<string, { color: string; backgroundColor: string; borderCol
   COMPLETED: { color: "#52646c", backgroundColor: "#edf1f2", borderColor: "#d8e0e3" },
 };
 
-export function StatusChip({ status }: { status: string }) {
-  return <Chip size="small" variant="outlined" label={getStatusLabel(status)} sx={styles[status]} />;
+export function StatusChip({ status, label }: { status: string; label?: string }) {
+  return <Chip size="small" variant="outlined" label={label ?? getStatusLabel(status)} sx={styles[status]} />;
 }

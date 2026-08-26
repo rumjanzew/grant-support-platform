@@ -42,6 +42,7 @@ export function AppLayout() {
       { label: "Кабинет", to: "/expert" },
       { label: "Назначенные заявки", to: "/expert/assignments" },
     ] : []),
+    ...(user ? [{ label: "Профиль", to: "/profile" }] : []),
   ];
   const footerNavigation = [
     { label: "Главная", to: "/" },

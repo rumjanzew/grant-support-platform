@@ -9,8 +9,11 @@ import type {
   ExpertDashboard,
   ExpertDecision,
   Grant,
+  Organization,
   OrganizationInput,
   PaginatedResponse,
+  Profile,
+  ProfileInput,
   UserSummary,
 } from "../types";
 
@@ -33,6 +36,13 @@ export const authApi = {
     password: string;
     password_confirm: string;
   }) => apiClient.post<{ detail: string }>("/auth/password-reset/confirm/", data),
+  profile: () => apiClient.get<Profile>("/profile/"),
+  updateProfile: (data: ProfileInput) => apiClient.patch<Profile>("/profile/", data),
+  changePassword: (data: {
+    current_password: string;
+    new_password: string;
+    new_password_confirm: string;
+  }) => apiClient.post<{ detail: string }>("/profile/change-password/", data),
 };
 
 export interface GrantParams {
@@ -81,7 +91,9 @@ export const applicationsApi = {
 };
 
 export const organizationsApi = {
-  create: (data: OrganizationInput) => apiClient.post("/organizations/", data),
+  create: (data: OrganizationInput) => apiClient.post<Organization>("/organizations/", data),
+  me: () => apiClient.get<Organization>("/organizations/me/"),
+  update: (data: OrganizationInput) => apiClient.patch<Organization>("/organizations/me/", data),
 };
 
 export interface ListParams {

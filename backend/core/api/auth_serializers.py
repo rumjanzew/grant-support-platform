@@ -18,6 +18,7 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
+from core.api.serializers import OrganizationSerializer
 from core.models import Role, User
 from core.services.audit import write_audit_log
 
@@ -41,6 +42,82 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = fields
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="role.name", read_only=True)
+    organization = OrganizationSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "middle_name",
+            "phone",
+            "role",
+            "status",
+            "organization",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "email",
+            "role",
+            "status",
+            "organization",
+            "created_at",
+            "updated_at",
+        )
+        extra_kwargs = {
+            "first_name": {"required": True, "allow_blank": False},
+            "last_name": {"required": True, "allow_blank": False},
+            "middle_name": {"required": False, "allow_blank": True},
+            "phone": {"required": True, "allow_blank": False},
+        }
+
+    def validate_phone(self, value):
+        normalized = re.sub(r"[\s()-]", "", value)
+        if not re.fullmatch(r"\+?[0-9]{10,15}", normalized):
+            raise serializers.ValidationError("Укажите корректный номер телефона.")
+        return normalized
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True, trim_whitespace=False)
+    new_password = serializers.CharField(write_only=True, trim_whitespace=False)
+    new_password_confirm = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    def validate_current_password(self, value):
+        if not self.context["request"].user.check_password(value):
+            raise serializers.ValidationError("Текущий пароль указан неверно.")
+        return value
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["new_password_confirm"]:
+            raise serializers.ValidationError(
+                {"new_password_confirm": "Пароли не совпадают."}
+            )
+        user = self.context["request"].user
+        try:
+            password_validation.validate_password(attrs["new_password"], user)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(
+                {"new_password": list(error.messages)}
+            ) from error
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context["request"].user
+        user.set_password(self.validated_data["new_password"])
+        user.password_changed_at = timezone.now()
+        user.save(update_fields=("password", "password_changed_at", "updated_at"))
+        for outstanding_token in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=outstanding_token)
+        return user
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

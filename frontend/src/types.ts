@@ -14,6 +14,44 @@ export interface CurrentUser {
   created_at: string;
 }
 
+export interface Organization {
+  id: string;
+  name: string;
+  inn: string;
+  kpp: string;
+  ogrn: string;
+  organization_type: string;
+  registration_date: string | null;
+  status: "ACTIVE" | "BLOCKED";
+  city: string;
+  street: string;
+  house: string;
+  postal_code: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  phone: string;
+  role: UserRole;
+  status: "ACTIVE" | "BLOCKED";
+  organization: Organization | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfileInput {
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  phone: string;
+}
+
 export type GrantStatus = "DRAFT" | "PUBLISHED" | "OPEN" | "CLOSED" | "ARCHIVED";
 
 export interface Grant {
@@ -83,7 +121,7 @@ export interface OrganizationInput {
   kpp: string;
   ogrn: string;
   organization_type: string;
-  registration_date?: string;
+  registration_date?: string | null;
   city: string;
   street: string;
   house: string;

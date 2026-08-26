@@ -11,11 +11,13 @@ from core.api.attachment_views import (
     ApplicationAttachmentListView,
 )
 from core.api.auth_views import (
+    ChangePasswordView,
     CurrentUserView,
     LoginView,
     LogoutView,
     PasswordResetConfirmView,
     PasswordResetRequestView,
+    ProfileView,
     RefreshView,
     RegistrationView,
 )
@@ -54,6 +56,12 @@ urlpatterns = [
     path("api/auth/refresh/", RefreshView.as_view(), name="auth-refresh"),
     path("api/auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("api/auth/me/", CurrentUserView.as_view(), name="auth-me"),
+    path("api/profile/", ProfileView.as_view(), name="profile"),
+    path(
+        "api/profile/change-password/",
+        ChangePasswordView.as_view(),
+        name="profile-change-password",
+    ),
     path(
         "api/auth/password-reset/",
         PasswordResetRequestView.as_view(),

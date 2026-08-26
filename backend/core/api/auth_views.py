@@ -8,11 +8,13 @@ from drf_spectacular.utils import extend_schema
 
 from core.api.auth_serializers import (
     ActiveUserTokenRefreshSerializer,
+    ChangePasswordSerializer,
     CurrentUserSerializer,
     LoginSerializer,
     LogoutSerializer,
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
+    ProfileSerializer,
     RegistrationSerializer,
 )
 from core.api.permissions import IsActivePlatformUser
@@ -57,6 +59,28 @@ class CurrentUserView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = (IsActivePlatformUser,)
+    http_method_names = ("get", "patch", "head", "options")
+
+    def get_object(self):
+        return self.request.user
+
+
+class ChangePasswordView(generics.GenericAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = (IsActivePlatformUser,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"detail": "Пароль успешно изменён. Войдите с новым паролем."}
+        )
 
 
 class PasswordResetRequestView(generics.GenericAPIView):

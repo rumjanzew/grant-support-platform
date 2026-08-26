@@ -41,3 +41,6 @@ export const AdministratorRoute = ({ children }: { children: React.ReactNode }) 
 export const ExpertRoute = ({ children }: { children: React.ReactNode }) => (
   <RoleRoute roles={["Expert"]}>{children}</RoleRoute>
 );
+export const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => (
+  <RoleRoute roles={["Applicant", "Expert", "Administrator"]}>{children}</RoleRoute>
+);

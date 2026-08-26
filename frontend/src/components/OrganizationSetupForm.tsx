@@ -1,25 +1,55 @@
 import { Alert, Box, Button, Grid, Paper, Stack, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { getApiErrorMessage } from "../api/errors";
 import { organizationsApi } from "../api/services";
 import { useAuth } from "../auth/AuthContext";
 import { useNotify } from "../notifications/NotificationContext";
-import type { OrganizationInput } from "../types";
+import type { Organization, OrganizationInput } from "../types";
 
-export function OrganizationSetupForm() {
+interface OrganizationSetupFormProps {
+  organization?: Organization;
+  onSaved?: (organization: Organization) => void | Promise<void>;
+  onCancel?: () => void;
+}
+
+const emptyOrganization: OrganizationInput = { kpp: "", city: "", street: "", house: "", postal_code: "", name: "", inn: "", ogrn: "", organization_type: "" };
+
+function toInput(organization: Organization): OrganizationInput {
+  return {
+    name: organization.name,
+    inn: organization.inn,
+    kpp: organization.kpp,
+    ogrn: organization.ogrn,
+    organization_type: organization.organization_type,
+    registration_date: organization.registration_date,
+    city: organization.city,
+    street: organization.street,
+    house: organization.house,
+    postal_code: organization.postal_code,
+  };
+}
+
+export function OrganizationSetupForm({ organization, onSaved, onCancel }: OrganizationSetupFormProps = {}) {
   const { refreshUser } = useAuth();
   const notify = useNotify();
   const [error, setError] = useState("");
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<OrganizationInput>({ defaultValues: { kpp: "", city: "", street: "", house: "", postal_code: "" } });
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<OrganizationInput>({ defaultValues: organization ? toInput(organization) : emptyOrganization });
+
+  useEffect(() => {
+    reset(organization ? toInput(organization) : emptyOrganization);
+  }, [organization, reset]);
 
   const onSubmit = async (data: OrganizationInput) => {
     setError("");
     try {
-      await organizationsApi.create(data);
+      const response = organization
+        ? await organizationsApi.update(data)
+        : await organizationsApi.create(data);
       await refreshUser();
-      notify("Организация сохранена. Теперь можно создать заявку.");
+      notify(organization ? "Данные организации обновлены." : "Организация сохранена. Теперь можно создать заявку.");
+      await onSaved?.(response.data);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
     }
@@ -27,8 +57,8 @@ export function OrganizationSetupForm() {
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 } }}>
-      <Typography variant="h5">Сначала добавьте организацию</Typography>
-      <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>Заявка подаётся от имени организации. Эти данные будут связаны с вашим профилем.</Typography>
+      <Typography variant="h5">{organization ? "Редактирование организации" : "Сначала добавьте организацию"}</Typography>
+      <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>{organization ? "Изменения будут использоваться в новых и существующих заявках." : "Заявка подаётся от имени организации. Эти данные будут связаны с вашим профилем."}</Typography>
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={2.5}>
           {error && <Alert severity="error">{error}</Alert>}
@@ -45,7 +75,10 @@ export function OrganizationSetupForm() {
             <Grid size={{ xs: 6, sm: 2 }}><TextField label="Дом" fullWidth {...register("house")} /></Grid>
             <Grid size={{ xs: 6, sm: 2 }}><TextField label="Индекс" fullWidth {...register("postal_code")} /></Grid>
           </Grid>
-          <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>{isSubmitting ? "Сохраняем…" : "Сохранить организацию"}</Button>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+            <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>{isSubmitting ? "Сохраняем…" : "Сохранить организацию"}</Button>
+            {onCancel && <Button size="large" onClick={onCancel} disabled={isSubmitting}>Отмена</Button>}
+          </Stack>
         </Stack>
       </Box>
     </Paper>
