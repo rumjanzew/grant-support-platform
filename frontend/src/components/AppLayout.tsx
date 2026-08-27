@@ -33,7 +33,7 @@ export function AppLayout() {
     ...(user?.role === "Applicant" ? [{ label: "Мои заявки", to: "/applications" }] : []),
     ...(user?.role === "Administrator" ? [{ label: "Администрирование", to: "/admin" }] : []),
     ...(user?.role === "Expert" ? [
-      { label: "Кабинет", to: "/expert" },
+      { label: "Обзор", to: "/expert" },
       { label: "Назначенные заявки", to: "/expert/assignments" },
     ] : []),
   ];
