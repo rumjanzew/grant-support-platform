@@ -15,6 +15,8 @@ import type {
   Profile,
   ProfileInput,
   UserSummary,
+  UserNotification,
+  UserRole,
 } from "../types";
 
 export interface LoginResponse {
@@ -119,6 +121,20 @@ export const administratorApi = {
     }),
   users: (params: ListParams = {}) =>
     apiClient.get<PaginatedResponse<UserSummary>>("/admin/users/", { params }),
+  changeUserRole: (userId: string, role: Exclude<UserRole, "Administrator">) =>
+    apiClient.post<UserSummary>(`/admin/users/${userId}/change-role/`, { role }),
+  blockUser: (userId: string) =>
+    apiClient.post<UserSummary>(`/admin/users/${userId}/block/`),
+  unblockUser: (userId: string) =>
+    apiClient.post<UserSummary>(`/admin/users/${userId}/unblock/`),
+};
+
+export const notificationsApi = {
+  list: (params: { page?: number; page_size?: number } = {}) =>
+    apiClient.get<PaginatedResponse<UserNotification>>("/notifications/", { params }),
+  unreadCount: () => apiClient.get<{ count: number }>("/notifications/unread-count/"),
+  read: (id: string) => apiClient.post<UserNotification>(`/notifications/${id}/read/`),
+  markAllRead: () => apiClient.post<{ updated: number }>("/notifications/mark-all-read/"),
 };
 
 export const expertApi = {

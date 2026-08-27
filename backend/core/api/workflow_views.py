@@ -1,16 +1,18 @@
 from datetime import timedelta
 
+from django.db import transaction
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from django.utils import timezone
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
 from core.api.pagination import GrantPagination
-from core.api.permissions import IsAdministrator, IsExpert
+from core.api.permissions import IsActivePlatformUser, IsAdministrator, IsExpert
 from core.api.workflow_serializers import (
     AdminApplicationSerializer,
     AdministratorDashboardSerializer,
@@ -20,9 +22,11 @@ from core.api.workflow_serializers import (
     ExpertDecisionSerializer,
     ExpertiseReportSerializer,
     ReportDraftSerializer,
+    NotificationSerializer,
     UserListSerializer,
+    UserRoleChangeSerializer,
 )
-from core.models import Application, ExpertAssignment, Grant, Role, User
+from core.models import Application, ExpertAssignment, Grant, Notification, Role, User
 from core.services.expertise_workflow import (
     assign_expert,
     save_report_draft,
@@ -110,8 +114,6 @@ class AdministratorApplicationViewSet(viewsets.ReadOnlyModelViewSet):
         status_value = self.request.query_params.get("status")
         if status_value:
             if status_value not in Application.Status.values:
-                from rest_framework.exceptions import ValidationError
-
                 raise ValidationError({"status": "Неизвестный статус заявки."})
             queryset = queryset.filter(status=status_value)
         return queryset
@@ -172,6 +174,107 @@ class AdministratorUserViewSet(viewsets.ReadOnlyModelViewSet):
         if status_value:
             queryset = queryset.filter(status=status_value)
         return queryset
+
+    def _locked_user(self, pk):
+        target = User.objects.select_for_update().filter(pk=pk).first()
+        if target is None:
+            raise NotFound("Пользователь не найден.")
+        return target
+
+    def _ensure_not_self(self, request, target, action):
+        if target.pk == request.user.pk:
+            raise ValidationError(
+                {
+                    "code": "SELF_USER_CHANGE_FORBIDDEN",
+                    "detail": f"Нельзя {action} собственную учётную запись.",
+                }
+            )
+
+    @action(detail=True, methods=("post",), url_path="change-role")
+    def change_role(self, request, pk=None):
+        serializer = UserRoleChangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            target = self._locked_user(pk)
+            self._ensure_not_self(request, target, "изменить роль для")
+            if target.role and target.role.name == Role.Name.ADMINISTRATOR:
+                raise ValidationError(
+                    {
+                        "code": "ADMINISTRATOR_ROLE_CHANGE_FORBIDDEN",
+                        "detail": "Роль администратора нельзя изменить через этот интерфейс.",
+                    }
+                )
+            previous_role = target.role.name if target.role else None
+            next_role = serializer.validated_data["role"]
+            if previous_role == next_role:
+                return Response(UserListSerializer(target).data)
+            target.role = Role.objects.get(name=next_role)
+            target.save(update_fields=("role", "updated_at"))
+            write_audit_log(
+                action="user.role_changed",
+                request=request,
+                user=request.user,
+                entity=target,
+                metadata={"old_role": previous_role, "new_role": next_role},
+            )
+        return Response(UserListSerializer(target).data)
+
+    def _set_blocked(self, request, pk, *, blocked):
+        with transaction.atomic():
+            target = self._locked_user(pk)
+            self._ensure_not_self(request, target, "заблокировать" if blocked else "разблокировать")
+            previous_status = target.status
+            next_status = User.Status.BLOCKED if blocked else User.Status.ACTIVE
+            if previous_status != next_status:
+                target.status = next_status
+                target.save(update_fields=("status", "updated_at"))
+                write_audit_log(
+                    action="user.blocked" if blocked else "user.unblocked",
+                    request=request,
+                    user=request.user,
+                    entity=target,
+                    metadata={"old_status": previous_status, "new_status": next_status},
+                )
+        return Response(UserListSerializer(target).data)
+
+    @action(detail=True, methods=("post",))
+    def block(self, request, pk=None):
+        return self._set_blocked(request, pk, blocked=True)
+
+    @action(detail=True, methods=("post",))
+    def unblock(self, request, pk=None):
+        return self._set_blocked(request, pk, blocked=False)
+
+
+class NotificationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = (IsActivePlatformUser,)
+    pagination_class = GrantPagination
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return self.queryset.none()
+        return Notification.objects.filter(recipient=self.request.user).select_related(
+            "application", "recipient__role"
+        )
+
+    @action(detail=False, methods=("get",), url_path="unread-count")
+    def unread_count(self, request):
+        return Response({"count": self.get_queryset().filter(is_read=False).count()})
+
+    @action(detail=True, methods=("post",))
+    def read(self, request, pk=None):
+        notification = self.get_object()
+        if not notification.is_read:
+            notification.is_read = True
+            notification.save(update_fields=("is_read",))
+        return Response(self.get_serializer(notification).data)
+
+    @action(detail=False, methods=("post",), url_path="mark-all-read")
+    def mark_all_read(self, request):
+        updated = self.get_queryset().filter(is_read=False).update(is_read=True)
+        return Response({"updated": updated})
 
 
 class ExpertDashboardView(APIView):

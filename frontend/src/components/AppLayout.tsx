@@ -22,6 +22,7 @@ import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { getRoleLabel } from "../utils/labels";
 import { BrandLogo } from "./BrandLogo";
+import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 
 export function AppLayout() {
@@ -61,7 +62,7 @@ export function AppLayout() {
             {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} aria-current={isActive(link.to) ? "page" : undefined} sx={{ position: "relative", minWidth: "auto", px: 1.25, fontSize: { md: "0.78rem", lg: "0.875rem" }, color: isActive(link.to) ? "primary.main" : "text.primary", backgroundColor: isActive(link.to) ? "#F0EFFE" : "transparent", "&:hover": { backgroundColor: isActive(link.to) ? "#E8E7FD" : "#F6F6FA", color: "primary.main" }, "&::after": isActive(link.to) ? { content: '""', position: "absolute", left: 10, right: 10, bottom: 3, height: 2, borderRadius: 2, backgroundColor: "primary.main" } : undefined }}>{link.label}</Button>)}
           </Stack>
           {user ? (
-            <UserMenu />
+            <><NotificationBell /><UserMenu /></>
           ) : (
             <Stack direction="row" spacing={1} sx={{ display: { xs: "none", sm: "flex" } }}>
               <Button component={RouterLink} to="/login">Войти</Button>

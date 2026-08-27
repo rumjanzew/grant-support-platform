@@ -8,6 +8,7 @@ from core.models import (
     ExpertAssignment,
     ExpertiseReport,
     Grant,
+    Notification,
     Organization,
     Role,
     User,
@@ -115,6 +116,14 @@ class ExpertiseReportAdmin(ReadOnlyWorkflowAdmin):
     list_display = ("application", "expert", "score", "decision", "draft", "submitted_at")
     search_fields = ("application__application_number", "expert__email", "comment")
     list_filter = ("decision", "draft", "submitted_at")
+
+
+@admin.register(Notification)
+class NotificationAdmin(ReadOnlyWorkflowAdmin):
+    list_display = ("created_at", "recipient", "type", "title", "is_read", "application")
+    search_fields = ("recipient__email", "title", "message", "application__application_number")
+    list_filter = ("type", "is_read", "created_at")
+    date_hierarchy = "created_at"
 
 
 @admin.register(AuditLog)

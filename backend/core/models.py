@@ -362,6 +362,43 @@ class ExpertiseReport(models.Model):
         return f"Заключение по {self.application}"
 
 
+class Notification(models.Model):
+    class Type(models.TextChoices):
+        APPLICATION_SUBMITTED = "APPLICATION_SUBMITTED", "Новая заявка"
+        EXPERT_ASSIGNED = "EXPERT_ASSIGNED", "Назначение эксперта"
+        REVISION_REQUIRED = "REVISION_REQUIRED", "Требуется доработка"
+        APPLICATION_APPROVED = "APPLICATION_APPROVED", "Заявка одобрена"
+        APPLICATION_REJECTED = "APPLICATION_REJECTED", "Заявка отклонена"
+        REVISION_SUBMITTED = "REVISION_SUBMITTED", "Доработка отправлена"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+    type = models.CharField(max_length=32, choices=Type.choices, db_index=True)
+    title = models.CharField(max_length=160)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False, db_index=True)
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = "notifications"
+        ordering = ("-created_at",)
+        indexes = [models.Index(fields=("recipient", "is_read", "created_at"))]
+
+    def __str__(self):
+        return f"{self.title} — {self.recipient}"
+
+
 class AuditLog(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(

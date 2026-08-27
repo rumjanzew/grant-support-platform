@@ -22,6 +22,7 @@ import { useState } from "react";
 import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 
 import { BrandLogo } from "./BrandLogo";
+import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 
 const drawerWidth = 260;
@@ -96,6 +97,7 @@ export function AdminLayout() {
           <Toolbar sx={{ minHeight: { xs: 64, md: 70 }, px: { xs: 1.5, sm: 3 } }}>
             <IconButton edge="start" onClick={() => setDrawerOpen(true)} sx={{ display: { md: "none" }, mr: 1 }} aria-label="Открыть административное меню"><MenuIcon /></IconButton>
             <Typography variant="h6" component="div" noWrap sx={{ flex: 1, minWidth: 0, fontWeight: 750 }}>{currentSection}</Typography>
+            <NotificationBell />
             <UserMenu />
           </Toolbar>
         </AppBar>

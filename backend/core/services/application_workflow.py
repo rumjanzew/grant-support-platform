@@ -3,6 +3,10 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from core.models import Application, Grant, Organization
+from core.services.notifications import (
+    notify_application_submitted,
+    notify_revision_submitted,
+)
 
 
 def workflow_error(code, detail):
@@ -103,10 +107,15 @@ def submit_application(application_id, organization_id):
         ]
         if application.application_number is None:
             application.application_number = _next_application_number()
-        if application.status == Application.Status.REVISION_REQUIRED:
+        previous_status = application.status
+        if previous_status == Application.Status.REVISION_REQUIRED:
             application.version += 1
             update_fields.append("version")
         application.status = target_status
         application.submitted_at = timezone.now()
         application.save(update_fields=update_fields)
+        if previous_status == Application.Status.DRAFT:
+            notify_application_submitted(application)
+        else:
+            notify_revision_submitted(application)
         return application

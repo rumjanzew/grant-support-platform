@@ -29,6 +29,7 @@ from core.api.workflow_views import (
     AdministratorUserViewSet,
     ExpertAssignmentViewSet,
     ExpertDashboardView,
+    NotificationViewSet,
 )
 
 
@@ -42,6 +43,7 @@ router.register(
     basename="admin-application",
 )
 router.register("admin/users", AdministratorUserViewSet, basename="admin-user")
+router.register("notifications", NotificationViewSet, basename="notification")
 router.register(
     "expert/assignments",
     ExpertAssignmentViewSet,

@@ -221,3 +221,22 @@ export interface ExpertAssignment {
   status: "ACTIVE" | "COMPLETED";
   report: ExpertiseReport | null;
 }
+
+export type NotificationType =
+  | "APPLICATION_SUBMITTED"
+  | "EXPERT_ASSIGNED"
+  | "REVISION_REQUIRED"
+  | "APPLICATION_APPROVED"
+  | "APPLICATION_REJECTED"
+  | "REVISION_SUBMITTED";
+
+export interface UserNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  is_read: boolean;
+  application: string | null;
+  assignment_id: string | null;
+  created_at: string;
+}

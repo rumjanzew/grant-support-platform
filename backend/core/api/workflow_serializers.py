@@ -6,6 +6,8 @@ from core.models import (
     Attachment,
     ExpertAssignment,
     ExpertiseReport,
+    Notification,
+    Role,
     User,
 )
 
@@ -32,6 +34,44 @@ class UserListSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = fields
+
+
+class UserRoleChangeSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=(Role.Name.APPLICANT, Role.Name.EXPERT)
+    )
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    assignment_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = (
+            "id",
+            "type",
+            "title",
+            "message",
+            "is_read",
+            "application",
+            "assignment_id",
+            "created_at",
+        )
+        read_only_fields = fields
+
+    @extend_schema_field(serializers.UUIDField(allow_null=True))
+    def get_assignment_id(self, notification):
+        if notification.application_id is None:
+            return None
+        return (
+            ExpertAssignment.objects.filter(
+                application_id=notification.application_id,
+                expert_id=notification.recipient_id,
+            )
+            .order_by("-assigned_at")
+            .values_list("id", flat=True)
+            .first()
+        )
 
 
 class AssignmentSummarySerializer(serializers.ModelSerializer):

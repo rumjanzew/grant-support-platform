@@ -9,6 +9,10 @@ from core.models import (
     Role,
     User,
 )
+from core.services.notifications import (
+    notify_applicants_about_decision,
+    notify_expert_assigned,
+)
 
 
 def workflow_error(code, detail):
@@ -47,6 +51,7 @@ def assign_expert(application_id, expert_id, administrator):
         )
         application.status = Application.Status.UNDER_REVIEW
         application.save(update_fields=("status", "updated_at"))
+        notify_expert_assigned(assignment)
         return assignment
 
 
@@ -138,4 +143,10 @@ def submit_expert_decision(assignment_id, expert_id, score, comment, decision):
         assignment.save(update_fields=("status",))
         application.status = target_status
         application.save(update_fields=("status", "updated_at"))
+        notification_types = {
+            ExpertiseReport.Decision.APPROVED: "APPLICATION_APPROVED",
+            ExpertiseReport.Decision.REJECTED: "APPLICATION_REJECTED",
+            ExpertiseReport.Decision.REVISION_REQUIRED: "REVISION_REQUIRED",
+        }
+        notify_applicants_about_decision(application, notification_types[decision])
         return report

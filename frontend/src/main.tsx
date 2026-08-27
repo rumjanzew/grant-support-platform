@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
 import { NotificationProvider } from "./notifications/NotificationContext";
+import { NotificationCenterProvider } from "./notifications/NotificationCenterContext";
 import { FrontendErrorBoundary } from "./components/FrontendErrorBoundary";
 import { theme } from "./theme";
 import "./styles.css";
@@ -18,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
         <FrontendErrorBoundary>
           <NotificationProvider>
             <AuthProvider>
-              <App />
+              <NotificationCenterProvider>
+                <App />
+              </NotificationCenterProvider>
             </AuthProvider>
           </NotificationProvider>
         </FrontendErrorBoundary>
