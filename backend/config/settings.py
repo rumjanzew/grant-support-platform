@@ -131,9 +131,10 @@ TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://127.0.0.1:5173")
 EMAIL_BACKEND = os.environ.get(

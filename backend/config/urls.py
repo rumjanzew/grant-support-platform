@@ -52,7 +52,7 @@ router.register(
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("django-admin/", admin.site.urls),
     path("api/health/", health_check, name="health-check"),
     path("api/auth/register/", RegistrationView.as_view(), name="auth-register"),
     path("api/auth/login/", LoginView.as_view(), name="auth-login"),
