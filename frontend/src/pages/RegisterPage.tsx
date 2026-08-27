@@ -5,6 +5,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import { getApiErrorMessage } from "../api/errors";
 import { authApi } from "../api/services";
+import { BrandLogo } from "../components/BrandLogo";
 import { useNotify } from "../notifications/NotificationContext";
 
 interface RegisterForm {
@@ -38,6 +39,7 @@ export function RegisterPage() {
 
   return (
     <Paper variant="outlined" sx={{ maxWidth: 760, mx: "auto", p: { xs: 3, sm: 4 } }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}><BrandLogo to="/" /></Box>
       <Typography variant="h4" component="h1">Регистрация заявителя</Typography>
       <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>После регистрации будет назначена роль «Заявитель».</Typography>
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>

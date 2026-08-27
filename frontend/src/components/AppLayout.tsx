@@ -21,6 +21,7 @@ import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
 import { getRoleLabel } from "../utils/labels";
+import { BrandLogo } from "./BrandLogo";
 import { UserMenu } from "./UserMenu";
 
 export function AppLayout() {
@@ -55,9 +56,7 @@ export function AppLayout() {
           <IconButton color="inherit" edge="start" onClick={() => setDrawerOpen(true)} sx={{ display: { md: "none" }, mr: 1 }} aria-label="Открыть меню">
             <MenuIcon />
           </IconButton>
-          <Typography component={RouterLink} to="/" variant="h6" sx={{ color: "primary.main", textDecoration: "none", fontWeight: 800, letterSpacing: "-0.02em", flexGrow: { xs: 1, md: 0 }, mr: 3 }}>
-            GrantSupport
-          </Typography>
+          <Box sx={{ flexGrow: { xs: 1, md: 0 }, mr: { xs: 1, md: 3 }, display: "flex" }}><BrandLogo to="/" compactOnMobile /></Box>
           <Stack direction="row" spacing={0.5} sx={{ display: { xs: "none", md: "flex" }, flexGrow: 1 }}>
             {links.map((link) => <Button key={link.to} component={RouterLink} to={link.to} aria-current={isActive(link.to) ? "page" : undefined} sx={{ position: "relative", minWidth: "auto", px: 1.25, fontSize: { md: "0.78rem", lg: "0.875rem" }, color: isActive(link.to) ? "primary.main" : "text.primary", backgroundColor: isActive(link.to) ? "#F0EFFE" : "transparent", "&:hover": { backgroundColor: isActive(link.to) ? "#E8E7FD" : "#F6F6FA", color: "primary.main" }, "&::after": isActive(link.to) ? { content: '""', position: "absolute", left: 10, right: 10, bottom: 3, height: 2, borderRadius: 2, backgroundColor: "primary.main" } : undefined }}>{link.label}</Button>)}
           </Stack>
@@ -73,7 +72,7 @@ export function AppLayout() {
       </AppBar>
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <Box sx={{ width: { xs: 280, sm: 320 } }} role="navigation">
-          <Typography variant="h6" sx={{ px: 2.5, py: 2.25, fontWeight: 800, color: "primary.main" }}>GrantSupport</Typography>
+          <Box sx={{ px: 2.5, py: 2.25 }}><BrandLogo to="/" /></Box>
           {user && <Box sx={{ px: 2.5, pb: 2 }}><Typography fontWeight={750}>{[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email}</Typography><Typography variant="body2" color="text.secondary" noWrap>{user.email}</Typography><Chip size="small" label={getRoleLabel(user.role)} sx={{ mt: 1 }} /></Box>}
           <Divider />
           <List sx={{ p: 1.25 }}>
@@ -89,7 +88,7 @@ export function AppLayout() {
         <Container maxWidth="lg">
           <Grid container spacing={{ xs: 4, md: 6 }}>
             <Grid size={{ xs: 12, md: 5 }}>
-              <Typography variant="h6" fontWeight={800} sx={{ color: "#FFFFFF", mb: 1.5 }}>GrantSupport</Typography>
+              <Box sx={{ mb: 1.5 }}><BrandLogo to="/" inverted /></Box>
               <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.72)", maxWidth: 340, whiteSpace: "pre-line" }}>Платформа грантовой поддержки{`\n`}субъектов МСП и НКО{`\n`}Республики Коми</Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>

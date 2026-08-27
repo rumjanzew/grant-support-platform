@@ -6,6 +6,7 @@ import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../api/errors";
 import { useAuth } from "../auth/AuthContext";
 import { roleHome } from "../auth/RouteGuards";
+import { BrandLogo } from "../components/BrandLogo";
 
 interface LoginForm {
   email: string;
@@ -32,6 +33,7 @@ export function LoginPage() {
 
   return (
     <Paper variant="outlined" sx={{ maxWidth: 480, mx: "auto", p: { xs: 3, sm: 4 } }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}><BrandLogo to="/" /></Box>
       <Typography variant="h4" component="h1">Вход</Typography>
       <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>Войдите, чтобы управлять заявками.</Typography>
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>

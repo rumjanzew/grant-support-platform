@@ -21,6 +21,7 @@ import {
 import { useState } from "react";
 import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 
+import { BrandLogo } from "./BrandLogo";
 import { UserMenu } from "./UserMenu";
 
 const drawerWidth = 260;
@@ -40,7 +41,7 @@ export function AdminLayout() {
   const navigation = (closeDrawer = false) => (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }} role="navigation" aria-label="Административная навигация">
       <Box sx={{ px: 3, py: 2.5 }}>
-        <Typography component={RouterLink} to="/admin" variant="h6" sx={{ color: "primary.main", textDecoration: "none", fontWeight: 800, letterSpacing: "-0.02em" }}>GrantSupport</Typography>
+        <BrandLogo to="/admin" />
         <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.25 }}>Администрирование</Typography>
       </Box>
       <Divider />

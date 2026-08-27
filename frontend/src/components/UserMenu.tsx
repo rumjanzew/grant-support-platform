@@ -1,4 +1,3 @@
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import { Box, ButtonBase, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material";
@@ -7,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
 import { getRoleLabel } from "../utils/labels";
+import { UserAvatar } from "./UserAvatar";
 
 export function UserMenu() {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -35,7 +35,7 @@ export function UserMenu() {
         onClick={(event) => setAnchorEl(event.currentTarget)}
         sx={{ display: "flex", alignItems: "center", gap: 1, p: 0.75, pr: { xs: 0.75, sm: 1.25 }, borderRadius: 2, textAlign: "left", flexShrink: 0, "&:hover": { backgroundColor: "#F6F6FA" } }}
       >
-        <AccountCircleOutlinedIcon color="primary" />
+        <UserAvatar user={user} />
         <Box sx={{ display: { xs: "none", sm: "block" }, lineHeight: 1.1, maxWidth: { sm: 230 } }}>
           <Typography variant="body2" fontWeight={700} noWrap>{user.first_name || user.email}</Typography>
           <Typography variant="caption" color="text.secondary" noWrap display="block">{getRoleLabel(user.role)} · {user.email}</Typography>
