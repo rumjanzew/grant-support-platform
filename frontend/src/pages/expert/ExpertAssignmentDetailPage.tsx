@@ -2,13 +2,14 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
-import { Alert, Box, Button, Divider, List, ListItem, ListItemText, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Divider, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink, useParams } from "react-router-dom";
 
 import { getApiErrorMessage } from "../../api/errors";
 import { expertApi } from "../../api/services";
+import { AttachmentList } from "../../components/AttachmentList";
 import { LoadingState } from "../../components/LoadingState";
 import { StatusChip } from "../../components/StatusChip";
 import { useNotify } from "../../notifications/NotificationContext";
@@ -89,7 +90,7 @@ export function ExpertAssignmentDetailPage() {
         <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, backgroundColor: "background.paper" }}>
           <SectionTitle icon={<AttachFileOutlinedIcon />} title="Документы" description={`${application.attachments.length} файл(а) в заявке`} />
           <Divider sx={{ my: 2.5 }} />
-          {!application.attachments.length ? <Typography color="text.secondary">Документы не приложены.</Typography> : <List disablePadding sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", backgroundColor: "background.paper" }}>{application.attachments.map((file) => <ListItem key={file.id} divider><ListItemText primary={file.original_name} secondary={`${(file.size_bytes / 1024).toFixed(1)} КБ · ${file.mime_type}`} /></ListItem>)}</List>}
+          {!application.attachments.length ? <Typography color="text.secondary">Документы не приложены.</Typography> : <AttachmentList applicationId={application.id} attachments={application.attachments} />}
         </Paper>
 
         <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>

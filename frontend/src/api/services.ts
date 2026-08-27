@@ -88,6 +88,10 @@ export const applicationsApi = {
   },
   deleteAttachment: (applicationId: string, attachmentId: string) =>
     apiClient.delete(`/applications/${applicationId}/attachments/${attachmentId}/`),
+  downloadAttachment: (applicationId: string, attachmentId: string) =>
+    apiClient.get<Blob>(`/applications/${applicationId}/attachments/${attachmentId}/download/`, {
+      responseType: "blob",
+    }),
 };
 
 export const organizationsApi = {

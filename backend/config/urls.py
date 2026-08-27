@@ -7,6 +7,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from config.views import health_check
 from core.api.attachment_views import (
+    ApplicationAttachmentDownloadView,
     ApplicationAttachmentDetailView,
     ApplicationAttachmentListView,
 )
@@ -97,6 +98,11 @@ urlpatterns = [
         "api/applications/<uuid:application_id>/attachments/<uuid:attachment_id>/",
         ApplicationAttachmentDetailView.as_view(),
         name="application-attachment-detail",
+    ),
+    path(
+        "api/applications/<uuid:application_id>/attachments/<uuid:attachment_id>/download/",
+        ApplicationAttachmentDownloadView.as_view(),
+        name="application-attachment-download",
     ),
     path("api/", include(router.urls)),
 ]

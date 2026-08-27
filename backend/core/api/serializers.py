@@ -163,11 +163,8 @@ class AttachmentSerializer(serializers.ModelSerializer):
             "id",
             "application",
             "original_name",
-            "stored_name",
-            "storage_path",
             "mime_type",
             "size_bytes",
-            "sha256",
             "uploaded_by",
             "uploaded_at",
         )

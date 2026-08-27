@@ -1,21 +1,24 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, ListItemText, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Paper, Stack, TextField, Typography } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink, useParams } from "react-router-dom";
 
 import { getApiErrorMessage } from "../api/errors";
 import { applicationsApi, grantsApi, type ApplicationInput } from "../api/services";
+import { AttachmentList } from "../components/AttachmentList";
 import { LoadingState } from "../components/LoadingState";
 import { StatusChip } from "../components/StatusChip";
 import { useNotify } from "../notifications/NotificationContext";
-import type { Application, Attachment, Grant } from "../types";
+import type { Application, Attachment, Grant, ReviewAttachment } from "../types";
 import { formatDateTime } from "../utils/date";
 
 const currency = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" });
 const editableStatuses = new Set(["DRAFT", "REVISION_REQUIRED"]);
+const allowedExtensions = new Set(["pdf", "doc", "docx", "xls", "xlsx", "jpg", "jpeg", "png", "zip"]);
+const maxFileSize = 10 * 1024 * 1024;
+const maxTotalSize = 50 * 1024 * 1024;
 
 export function ApplicationDetailPage() {
   const { id = "" } = useParams();
@@ -74,7 +77,11 @@ export function ApplicationDetailPage() {
 
   const uploadFile = async (file?: File) => {
     if (!file || !application) return;
-    if (file.size > 10 * 1024 * 1024) { notify("Файл превышает допустимый размер 10 МБ.", "error"); return; }
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!allowedExtensions.has(extension)) { notify("Формат файла не поддерживается.", "error"); return; }
+    if (file.size > maxFileSize) { notify("Файл превышает максимально допустимый размер 10 МБ.", "error"); return; }
+    if (attachments.length >= 10) { notify("К заявке можно прикрепить не более 10 файлов.", "error"); return; }
+    if (attachments.reduce((total, attachment) => total + attachment.size_bytes, 0) + file.size > maxTotalSize) { notify("Общий размер вложений не может превышать 50 МБ.", "error"); return; }
     setBusy(true);
     try {
       const response = await applicationsApi.upload(application.id, file);
@@ -87,7 +94,7 @@ export function ApplicationDetailPage() {
     }
   };
 
-  const removeFile = async (attachment: Attachment) => {
+  const removeFile = async (attachment: ReviewAttachment) => {
     if (!application) return;
     setBusy(true);
     try {
@@ -148,14 +155,12 @@ export function ApplicationDetailPage() {
 
         <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, backgroundColor: "background.paper" }}>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", sm: "center" }} gap={2}>
-            <Box><Typography variant="h5">Документы</Typography><Typography variant="body2" color="text.secondary">До 5 файлов, не более 10 МБ каждый</Typography></Box>
-            {editable && <Button component="label" startIcon={<UploadFileIcon />} variant="outlined" disabled={busy || attachments.length >= 5}>Загрузить<input hidden type="file" onChange={(event) => { void uploadFile(event.target.files?.[0]); event.target.value = ""; }} /></Button>}
+            <Box><Typography variant="h5">Документы</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Поддерживаемые форматы: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, ZIP.</Typography><Typography variant="body2" color="text.secondary">Максимальный размер одного файла — 10 МБ.</Typography><Typography variant="body2" color="text.secondary">Не более 10 файлов и 50 МБ суммарно на одну заявку.</Typography></Box>
+            {editable && <Button component="label" startIcon={<UploadFileIcon />} variant="outlined" disabled={busy || attachments.length >= 10}>Загрузить<input hidden type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip" onChange={(event) => { void uploadFile(event.target.files?.[0]); event.target.value = ""; }} /></Button>}
           </Stack>
           <Divider sx={{ my: 2 }} />
           {!attachments.length ? <Typography color="text.secondary">Документы пока не загружены.</Typography> : (
-            <List disablePadding sx={{ border: 1, borderColor: "divider", borderRadius: 2, overflow: "hidden", backgroundColor: "background.paper" }}>
-              {attachments.map((attachment) => <ListItem key={attachment.id} divider secondaryAction={editable ? <IconButton disabled={busy} edge="end" aria-label={`Удалить ${attachment.original_name}`} onClick={() => void removeFile(attachment)}><DeleteOutlineIcon /></IconButton> : undefined}><ListItemText primary={attachment.original_name} secondary={`${(attachment.size_bytes / 1024).toFixed(1)} КБ · ${formatDateTime(attachment.uploaded_at)}`} /></ListItem>)}
-            </List>
+            <AttachmentList applicationId={application.id} attachments={attachments} busy={busy} onDelete={editable ? removeFile : undefined} />
           )}
         </Paper>
 

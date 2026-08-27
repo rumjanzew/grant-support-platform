@@ -47,10 +47,18 @@ class AssignmentSummarySerializer(serializers.ModelSerializer):
         return assignment.expert.get_full_name().strip() or assignment.expert.email
 
 
+class AttachmentReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attachment
+        fields = ("id", "original_name", "mime_type", "size_bytes", "uploaded_at")
+        read_only_fields = fields
+
+
 class AdminApplicationSerializer(serializers.ModelSerializer):
     grant_title = serializers.CharField(source="grant.title", read_only=True)
     organization_name = serializers.CharField(source="organization.name", read_only=True)
     assignment = serializers.SerializerMethodField()
+    attachments = AttachmentReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Application
@@ -70,6 +78,7 @@ class AdminApplicationSerializer(serializers.ModelSerializer):
             "updated_at",
             "submitted_at",
             "assignment",
+            "attachments",
         )
         read_only_fields = fields
 
@@ -90,13 +99,6 @@ class AdminApplicationSerializer(serializers.ModelSerializer):
 
 class AssignmentCreateSerializer(serializers.Serializer):
     expert_id = serializers.UUIDField()
-
-
-class AttachmentReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Attachment
-        fields = ("id", "original_name", "mime_type", "size_bytes", "uploaded_at")
-        read_only_fields = fields
 
 
 class ReviewApplicationSerializer(serializers.ModelSerializer):

@@ -86,10 +86,16 @@ class ApplicationWorkflowTests(APITestCase):
             format="json",
         )
 
-    def upload(self, application, name="document.txt", content=b"document"):
+    def upload(
+        self,
+        application,
+        name="document.pdf",
+        content=b"%PDF-1.4\nGrantSupport document",
+        content_type="application/pdf",
+    ):
         return self.client.post(
             reverse("application-attachment-list", args=(application.id,)),
-            {"file": SimpleUploadedFile(name, content, "text/plain")},
+            {"file": SimpleUploadedFile(name, content, content_type)},
             format="multipart",
         )
 
@@ -167,7 +173,7 @@ class ApplicationWorkflowTests(APITestCase):
 
     def test_upload_and_delete_attachment(self):
         application = self.create_application()
-        content = b"GrantSupport document"
+        content = b"%PDF-1.4\nGrantSupport document"
 
         uploaded = self.upload(application, content=content)
 
@@ -192,17 +198,17 @@ class ApplicationWorkflowTests(APITestCase):
         application = self.create_application()
         response = self.upload(
             application,
-            name="large.bin",
-            content=b"x" * (MAX_FILE_SIZE + 1),
+            name="large.pdf",
+            content=b"%PDF-1.4\n" + b"x" * MAX_FILE_SIZE,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["code"], "FILE_TOO_LARGE")
         self.assertFalse(application.attachments.exists())
 
-    def test_more_than_five_files_is_rejected(self):
+    def test_more_than_ten_files_is_rejected(self):
         application = self.create_application()
-        for index in range(5):
+        for index in range(10):
             Attachment.objects.create(
                 application=application,
                 original_name=f"document-{index}.txt",
@@ -214,11 +220,11 @@ class ApplicationWorkflowTests(APITestCase):
                 uploaded_by=self.applicant,
             )
 
-        response = self.upload(application, name="sixth.txt")
+        response = self.upload(application, name="eleventh.pdf")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["code"], "FILE_LIMIT_EXCEEDED")
-        self.assertEqual(application.attachments.count(), 5)
+        self.assertEqual(application.attachments.count(), 10)
 
     def test_submitted_application_cannot_be_edited_or_receive_files(self):
         application = self.create_application(status=Application.Status.SUBMITTED)

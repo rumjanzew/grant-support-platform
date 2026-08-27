@@ -106,11 +106,8 @@ export interface Attachment {
   id: string;
   application: string;
   original_name: string;
-  stored_name: string;
-  storage_path: string;
   mime_type: string;
   size_bytes: number;
-  sha256: string;
   uploaded_by: string;
   uploaded_at: string;
 }
@@ -173,6 +170,7 @@ export interface AdministratorApplication extends Application {
   organization_name: string;
   grant_title: string;
   assignment: AssignmentSummary | null;
+  attachments: ReviewAttachment[];
 }
 
 export interface ReviewAttachment {

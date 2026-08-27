@@ -104,7 +104,8 @@ class AdministratorApplicationViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = Application.objects.select_related("grant", "organization").prefetch_related(
-            "expert_assignments__expert"
+            "attachments",
+            "expert_assignments__expert",
         )
         status_value = self.request.query_params.get("status")
         if status_value:
