@@ -24,10 +24,19 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("id", "status", "created_at", "updated_at")
+        extra_kwargs = {
+            "inn": {"validators": []},
+            "ogrn": {"validators": []},
+        }
 
     def validate_inn(self, value):
         if not value.isdigit() or len(value) not in {10, 12}:
             raise serializers.ValidationError("ИНН должен содержать 10 или 12 цифр.")
+        queryset = Organization.objects.filter(inn=value)
+        if self.instance is not None:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("Организация с таким ИНН уже существует.")
         return value
 
     def validate_kpp(self, value):
@@ -38,6 +47,11 @@ class OrganizationSerializer(serializers.ModelSerializer):
     def validate_ogrn(self, value):
         if not value.isdigit() or len(value) not in {13, 15}:
             raise serializers.ValidationError("ОГРН должен содержать 13 или 15 цифр.")
+        queryset = Organization.objects.filter(ogrn=value)
+        if self.instance is not None:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("Организация с таким ОГРН уже существует.")
         return value
 
     def validate_registration_date(self, value):

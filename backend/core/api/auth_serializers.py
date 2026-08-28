@@ -1,6 +1,4 @@
 import re
-from email.utils import make_msgid
-
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -21,6 +19,11 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from core.api.serializers import OrganizationSerializer
 from core.models import Role, User
 from core.services.audit import write_audit_log
+from core.services.email_verification import (
+    EmailVerificationError,
+    confirm_email,
+    send_email_safely,
+)
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
@@ -39,6 +42,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             "status",
             "organization",
             "consent_pd_agreed_at",
+            "email_verified_at",
             "created_at",
         )
         read_only_fields = fields
@@ -60,6 +64,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "role",
             "status",
             "organization",
+            "email_verified_at",
             "created_at",
             "updated_at",
         )
@@ -69,6 +74,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "role",
             "status",
             "organization",
+            "email_verified_at",
             "created_at",
             "updated_at",
         )
@@ -139,6 +145,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             "phone",
             "consent_pd_agreed",
             "consent_pd_agreed_at",
+            "email_verified_at",
             "role",
             "status",
             "created_at",
@@ -146,6 +153,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "consent_pd_agreed_at",
+            "email_verified_at",
             "role",
             "status",
             "created_at",
@@ -206,6 +214,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             password=password,
             role=applicant_role,
             consent_pd_agreed_at=timezone.now(),
+            email_verified_at=None,
             **validated_data,
         )
 
@@ -231,7 +240,7 @@ class LoginSerializer(TokenObtainPairSerializer):
                 metadata={"email": email},
             )
             raise
-        if self.user.status != User.Status.ACTIVE:
+        if self.user.status != User.Status.ACTIVE or self.user.deleted_at is not None:
             write_audit_log(
                 action="auth.login_failed",
                 request=request,
@@ -258,7 +267,12 @@ class ActiveUserTokenRefreshSerializer(TokenRefreshSerializer):
             raise AuthenticationFailed("Refresh token недействителен.") from error
 
         user = User.objects.filter(pk=user_id).first()
-        if not user or not user.is_active or user.status != User.Status.ACTIVE:
+        if (
+            not user
+            or not user.is_active
+            or user.status != User.Status.ACTIVE
+            or user.deleted_at is not None
+        ):
             raise AuthenticationFailed("Учётная запись заблокирована.")
         return super().validate(attrs)
 
@@ -294,6 +308,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             email__iexact=email,
             is_active=True,
             status=User.Status.ACTIVE,
+            deleted_at__isnull=True,
         ).first()
         if user is None:
             return
@@ -302,7 +317,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         token = default_token_generator.make_token(user)
         frontend_url = self.context["frontend_url"].rstrip("/")
         reset_url = f"{frontend_url}/password-reset/confirm?uid={uid}&token={token}"
-        EmailMessage(
+        message = EmailMessage(
             subject="Восстановление пароля GrantSupport",
             body=(
                 "Для установки нового пароля перейдите по ссылке:\n"
@@ -310,8 +325,27 @@ class PasswordResetRequestSerializer(serializers.Serializer):
                 "Если вы не запрашивали восстановление, проигнорируйте это письмо."
             ),
             to=[user.email],
-            headers={"Message-ID": make_msgid(domain="grantsupport.local")},
-        ).send()
+        )
+        return send_email_safely(message, purpose="password reset")
+
+
+class EmailVerificationConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField(trim_whitespace=False)
+
+    def save(self, **kwargs):
+        try:
+            self.user, self.was_verified = confirm_email(
+                self.validated_data["token"]
+            )
+        except EmailVerificationError as error:
+            raise serializers.ValidationError(
+                {"code": error.code, "detail": error.detail}
+            ) from error
+        return self.user
+
+
+class EmailVerificationResendSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):

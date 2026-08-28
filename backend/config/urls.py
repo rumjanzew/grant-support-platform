@@ -14,6 +14,8 @@ from core.api.attachment_views import (
 from core.api.auth_views import (
     ChangePasswordView,
     CurrentUserView,
+    EmailVerificationConfirmView,
+    EmailVerificationResendView,
     LoginView,
     LogoutView,
     PasswordResetConfirmView,
@@ -74,6 +76,16 @@ urlpatterns = [
         "api/auth/password-reset/confirm/",
         PasswordResetConfirmView.as_view(),
         name="auth-password-reset-confirm",
+    ),
+    path(
+        "api/auth/email-verification/confirm/",
+        EmailVerificationConfirmView.as_view(),
+        name="auth-email-verification-confirm",
+    ),
+    path(
+        "api/auth/email-verification/resend/",
+        EmailVerificationResendView.as_view(),
+        name="auth-email-verification-resend",
     ),
     path("api/schema/", SpectacularAPIView.as_view(), name="openapi-schema"),
     path(

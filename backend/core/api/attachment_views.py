@@ -8,14 +8,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
-from core.api.permissions import IsActivePlatformUser, IsApplicant, is_administrator
+from core.api.permissions import IsActivePlatformUser, IsVerifiedApplicant, is_administrator
 from core.api.serializers import AttachmentSerializer, AttachmentUploadSerializer
 from core.models import Application, Attachment, ExpertAssignment, Role
 from core.services.attachments import delete_attachment, upload_attachment
 
 
 class ApplicationAttachmentListView(APIView):
-    permission_classes = (IsApplicant,)
+    permission_classes = (IsVerifiedApplicant,)
     parser_classes = (MultiPartParser, FormParser)
 
     def get_application(self, request, application_id):
@@ -52,7 +52,7 @@ class ApplicationAttachmentListView(APIView):
 
 
 class ApplicationAttachmentDetailView(APIView):
-    permission_classes = (IsApplicant,)
+    permission_classes = (IsVerifiedApplicant,)
 
     @extend_schema(responses={status.HTTP_204_NO_CONTENT: None})
     def delete(self, request, application_id, attachment_id):
@@ -77,7 +77,8 @@ class ApplicationAttachmentDownloadView(APIView):
             return True
         if user.role_id and user.role.name == Role.Name.APPLICANT:
             return bool(
-                user.organization_id
+                user.email_verified_at is not None
+                and user.organization_id
                 and user.organization_id == application.organization_id
             )
         if user.role_id and user.role.name == Role.Name.EXPERT:

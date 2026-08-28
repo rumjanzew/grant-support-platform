@@ -1,6 +1,7 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import {
   AppBar,
+  Alert,
   Box,
   Button,
   Chip,
@@ -83,6 +84,15 @@ export function AppLayout() {
         </Box>
       </Drawer>
       <Container component="main" maxWidth="lg" sx={{ flex: 1, py: { xs: 3, md: 5 }, px: { xs: 2, sm: 3 } }}>
+        {user?.role === "Applicant" && !user.email_verified_at && (
+          <Alert
+            severity="warning"
+            action={<Button component={RouterLink} to={`/email-verification?email=${encodeURIComponent(user.email)}`} color="inherit" size="small">Подтвердить</Button>}
+            sx={{ mb: 3 }}
+          >
+            Подтвердите email, чтобы создать организацию и подавать заявки.
+          </Alert>
+        )}
         <Outlet />
       </Container>
       <Box component="footer" sx={{ backgroundColor: "#24214D", color: "#FFFFFF", py: { xs: 4, md: 5 }, mt: 4 }}>

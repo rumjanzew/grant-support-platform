@@ -11,6 +11,7 @@ export interface CurrentUser {
   status: "ACTIVE" | "BLOCKED";
   organization: string | null;
   consent_pd_agreed_at: string;
+  email_verified_at: string | null;
   created_at: string;
 }
 
@@ -41,6 +42,7 @@ export interface Profile {
   role: UserRole;
   status: "ACTIVE" | "BLOCKED";
   organization: Organization | null;
+  email_verified_at: string | null;
   created_at: string;
   updated_at: string;
 }

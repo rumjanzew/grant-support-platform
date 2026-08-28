@@ -15,6 +15,9 @@ const codeMessages: Record<string, string> = {
   INVALID_EXPERT_DECISION: "Выберите допустимое экспертное решение.",
   SCORE_REQUIRED: "Для решения необходимо указать оценку.",
   COMMENT_REQUIRED: "Для решения необходимо добавить комментарий.",
+  EMAIL_NOT_VERIFIED: "Подтвердите email, чтобы работать с организацией и заявками.",
+  EMAIL_VERIFICATION_EXPIRED: "Ссылка подтверждения устарела. Запросите новое письмо.",
+  INVALID_EMAIL_VERIFICATION_TOKEN: "Ссылка подтверждения email недействительна.",
 };
 
 export function getApiErrorMessage(error: unknown): string {

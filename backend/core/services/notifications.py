@@ -21,6 +21,7 @@ def notify_application_submitted(application):
         role__name=Role.Name.ADMINISTRATOR,
         status=User.Status.ACTIVE,
         is_active=True,
+        deleted_at__isnull=True,
     )
     _create_for_users(
         administrators,
@@ -62,6 +63,7 @@ def notify_applicants_about_decision(application, decision):
         role__name=Role.Name.APPLICANT,
         status=User.Status.ACTIVE,
         is_active=True,
+        deleted_at__isnull=True,
     )
     _create_for_users(
         applicants,
@@ -83,6 +85,7 @@ def notify_revision_submitted(application):
         assignment is None
         or not assignment.expert.is_active
         or assignment.expert.status != User.Status.ACTIVE
+        or assignment.expert.deleted_at is not None
     ):
         return
     Notification.objects.create(

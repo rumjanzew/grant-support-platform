@@ -17,6 +17,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { EmailVerificationPage } from "./pages/EmailVerificationPage";
 import { AdminApplicationsPage } from "./pages/admin/AdminApplicationsPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminGrantFormPage } from "./pages/admin/AdminGrantFormPage";
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
           <Route path="password-reset" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
           <Route path="password-reset/confirm" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+          <Route path="email-verification" element={<EmailVerificationPage />} />
           <Route path="profile" element={<AuthenticatedRoute><ProfilePage /></AuthenticatedRoute>} />
           <Route path="notifications" element={<AuthenticatedRoute><NotificationsPage /></AuthenticatedRoute>} />
           <Route path="applications" element={<ApplicantRoute><ApplicationsPage /></ApplicantRoute>} />

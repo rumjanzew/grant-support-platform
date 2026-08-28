@@ -38,6 +38,13 @@ export const authApi = {
     password: string;
     password_confirm: string;
   }) => apiClient.post<{ detail: string }>("/auth/password-reset/confirm/", data),
+  confirmEmail: (token: string) =>
+    apiClient.post<{ detail: string; already_verified: boolean }>(
+      "/auth/email-verification/confirm/",
+      { token },
+    ),
+  resendEmailVerification: (email: string) =>
+    apiClient.post<{ detail: string }>("/auth/email-verification/resend/", { email }),
   profile: () => apiClient.get<Profile>("/profile/"),
   updateProfile: (data: ProfileInput) => apiClient.patch<Profile>("/profile/", data),
   changePassword: (data: {

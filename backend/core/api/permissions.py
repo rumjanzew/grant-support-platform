@@ -8,6 +8,7 @@ def user_has_role(user, role_name):
         user
         and user.is_authenticated
         and user.is_active
+        and user.deleted_at is None
         and user.status == User.Status.ACTIVE
         and user.role_id
         and user.role.name == role_name
@@ -19,6 +20,7 @@ def is_administrator(user):
         user
         and user.is_authenticated
         and user.is_active
+        and user.deleted_at is None
         and user.status == User.Status.ACTIVE
         and (
             user.is_superuser
@@ -39,6 +41,20 @@ class IsApplicant(BasePermission):
         return user_has_role(request.user, Role.Name.APPLICANT)
 
 
+class IsVerifiedApplicant(BasePermission):
+    message = {
+        "code": "EMAIL_NOT_VERIFIED",
+        "detail": "Подтвердите email, чтобы работать с организацией и заявками.",
+    }
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user_has_role(user, Role.Name.APPLICANT)
+            and user.email_verified_at is not None
+        )
+
+
 class IsAdministrator(BasePermission):
     def has_permission(self, request, view):
         return is_administrator(request.user)
@@ -56,5 +72,6 @@ class IsActivePlatformUser(BasePermission):
             user
             and user.is_authenticated
             and user.is_active
+            and user.deleted_at is None
             and user.status == User.Status.ACTIVE
         )

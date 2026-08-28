@@ -141,14 +141,21 @@ class Command(BaseCommand):
                     **spec,
                     "status": User.Status.ACTIVE,
                     "is_active": True,
+                    "deleted_at": None,
                 },
             )
+            update_fields = []
             if not user.check_password(DEMO_PASSWORD):
                 user.set_password(DEMO_PASSWORD)
-                update_fields = ["password", "updated_at"]
-                if email == "applicant@example.com" and user.consent_pd_agreed_at is None:
-                    user.consent_pd_agreed_at = now
-                    update_fields.append("consent_pd_agreed_at")
+                update_fields.append("password")
+            if user.email_verified_at is None:
+                user.email_verified_at = now
+                update_fields.append("email_verified_at")
+            if email == "applicant@example.com" and user.consent_pd_agreed_at is None:
+                user.consent_pd_agreed_at = now
+                update_fields.append("consent_pd_agreed_at")
+            if update_fields:
+                update_fields.append("updated_at")
                 user.save(update_fields=update_fields)
             users[email] = user
             created["users"] += int(was_created)

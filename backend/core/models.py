@@ -34,9 +34,9 @@ class Organization(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    inn = models.CharField(max_length=12)
+    inn = models.CharField(max_length=12, unique=True)
     kpp = models.CharField(max_length=9, blank=True)
-    ogrn = models.CharField(max_length=15)
+    ogrn = models.CharField(max_length=15, unique=True)
     organization_type = models.CharField(max_length=64)
     registration_date = models.DateField(null=True, blank=True)
     status = models.CharField(
@@ -51,6 +51,7 @@ class Organization(models.Model):
     postal_code = models.CharField(max_length=12, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = "organizations"
@@ -58,6 +59,57 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_deleted(self):
+        return self.deleted_at is not None
+
+    def soft_delete(self, *, deleted_at=None):
+        """Anonymize an organization while preserving its historical relations."""
+        from django.utils import timezone
+
+        if self.deleted_at is not None:
+            return False
+        deleted_at = deleted_at or timezone.now()
+        def available_numeric(field, width):
+            modulus = 10**width
+            candidate = self.id.int % modulus
+            while Organization.objects.exclude(pk=self.pk).filter(
+                **{field: str(candidate).zfill(width)}
+            ).exists():
+                candidate = (candidate + 1) % modulus
+            return str(candidate).zfill(width)
+
+        self.name = f"Удалённая организация {str(self.id)[:8]}"
+        self.inn = available_numeric("inn", 12)
+        self.kpp = ""
+        self.ogrn = available_numeric("ogrn", 15)
+        self.organization_type = "Удалена"
+        self.registration_date = None
+        self.status = self.Status.BLOCKED
+        self.city = ""
+        self.street = ""
+        self.house = ""
+        self.postal_code = ""
+        self.deleted_at = deleted_at
+        self.save(
+            update_fields=(
+                "name",
+                "inn",
+                "kpp",
+                "ogrn",
+                "organization_type",
+                "registration_date",
+                "status",
+                "city",
+                "street",
+                "house",
+                "postal_code",
+                "deleted_at",
+                "updated_at",
+            )
+        )
+        return True
 
 
 class User(AbstractUser):
@@ -101,6 +153,9 @@ class User(AbstractUser):
     locked_until = models.DateTimeField(null=True, blank=True)
     password_changed_at = models.DateTimeField(null=True, blank=True)
     consent_pd_agreed_at = models.DateTimeField(null=True, blank=True)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    email_verification_nonce = models.UUIDField(default=uuid.uuid4, editable=False)
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -115,6 +170,49 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    @property
+    def is_deleted(self):
+        return self.deleted_at is not None
+
+    def soft_delete(self, *, deleted_at=None):
+        """Anonymize an account without deleting workflow or audit history."""
+        from django.utils import timezone
+        from rest_framework_simplejwt.token_blacklist.models import (
+            BlacklistedToken,
+            OutstandingToken,
+        )
+
+        if self.deleted_at is not None:
+            return False
+        self.deleted_at = deleted_at or timezone.now()
+        self.email = f"deleted-{self.id}@deleted.invalid"
+        self.first_name = ""
+        self.last_name = ""
+        self.middle_name = ""
+        self.phone = ""
+        self.status = self.Status.BLOCKED
+        self.is_active = False
+        self.set_unusable_password()
+        self.email_verification_nonce = uuid.uuid4()
+        self.save(
+            update_fields=(
+                "email",
+                "first_name",
+                "last_name",
+                "middle_name",
+                "phone",
+                "status",
+                "is_active",
+                "password",
+                "email_verification_nonce",
+                "deleted_at",
+                "updated_at",
+            )
+        )
+        for token in OutstandingToken.objects.filter(user=self):
+            BlacklistedToken.objects.get_or_create(token=token)
+        return True
 
 
 class Grant(models.Model):

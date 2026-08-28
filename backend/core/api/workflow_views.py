@@ -43,7 +43,10 @@ class AdministratorDashboardView(APIView):
         start_date = timezone.localdate() - timedelta(days=13)
         registrations = {
             row["day"]: row["count"]
-            for row in User.objects.filter(created_at__date__gte=start_date)
+            for row in User.objects.filter(
+                created_at__date__gte=start_date,
+                deleted_at__isnull=True,
+            )
             .annotate(day=TruncDate("created_at"))
             .values("day")
             .annotate(count=Count("id"))
@@ -71,8 +74,11 @@ class AdministratorDashboardView(APIView):
                 "under_review": Application.objects.filter(
                     status=Application.Status.UNDER_REVIEW
                 ).count(),
-                "users": User.objects.count(),
-                "experts": User.objects.filter(role__name=Role.Name.EXPERT).count(),
+                "users": User.objects.filter(deleted_at__isnull=True).count(),
+                "experts": User.objects.filter(
+                    role__name=Role.Name.EXPERT,
+                    deleted_at__isnull=True,
+                ).count(),
                 "applications_by_status": [
                     {
                         "status": status_value,
@@ -166,7 +172,9 @@ class AdministratorUserViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ("-created_at",)
 
     def get_queryset(self):
-        queryset = User.objects.select_related("role", "organization")
+        queryset = User.objects.filter(deleted_at__isnull=True).select_related(
+            "role", "organization"
+        )
         role = self.request.query_params.get("role")
         status_value = self.request.query_params.get("status")
         if role:
@@ -176,7 +184,10 @@ class AdministratorUserViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def _locked_user(self, pk):
-        target = User.objects.select_for_update().filter(pk=pk).first()
+        target = User.objects.select_for_update().filter(
+            pk=pk,
+            deleted_at__isnull=True,
+        ).first()
         if target is None:
             raise NotFound("Пользователь не найден.")
         return target
@@ -244,6 +255,19 @@ class AdministratorUserViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=("post",))
     def unblock(self, request, pk=None):
         return self._set_blocked(request, pk, blocked=False)
+
+    def destroy(self, request, *args, **kwargs):
+        with transaction.atomic():
+            target = self._locked_user(kwargs["pk"])
+            self._ensure_not_self(request, target, "удалить")
+            write_audit_log(
+                action="user.soft_deleted",
+                request=request,
+                user=request.user,
+                entity=target,
+            )
+            target.soft_delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class NotificationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

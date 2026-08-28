@@ -10,6 +10,8 @@ from core.api.auth_serializers import (
     ActiveUserTokenRefreshSerializer,
     ChangePasswordSerializer,
     CurrentUserSerializer,
+    EmailVerificationConfirmSerializer,
+    EmailVerificationResendSerializer,
     LoginSerializer,
     LogoutSerializer,
     PasswordResetConfirmSerializer,
@@ -19,11 +21,23 @@ from core.api.auth_serializers import (
 )
 from core.api.permissions import IsActivePlatformUser
 from core.services.audit import write_audit_log
+from core.models import User
+from core.services.email_verification import send_verification_email
 
 
 class RegistrationView(generics.CreateAPIView):
     serializer_class = RegistrationSerializer
     permission_classes = (AllowAny,)
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        send_verification_email(user)
+        write_audit_log(
+            action="user.registered",
+            request=self.request,
+            user=user,
+            entity=user,
+        )
 
 
 class LoginView(TokenObtainPairView):
@@ -61,13 +75,22 @@ class CurrentUserView(generics.RetrieveAPIView):
         return self.request.user
 
 
-class ProfileView(generics.RetrieveUpdateAPIView):
+class ProfileView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProfileSerializer
     permission_classes = (IsActivePlatformUser,)
-    http_method_names = ("get", "patch", "head", "options")
+    http_method_names = ("get", "patch", "delete", "head", "options")
 
     def get_object(self):
         return self.request.user
+
+    def perform_destroy(self, instance):
+        write_audit_log(
+            action="user.soft_deleted",
+            request=self.request,
+            user=instance,
+            entity=instance,
+        )
+        instance.soft_delete()
 
 
 class ChangePasswordView(generics.GenericAPIView):
@@ -112,3 +135,57 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"detail": "Пароль успешно изменён."})
+
+
+class EmailVerificationConfirmView(generics.GenericAPIView):
+    serializer_class = EmailVerificationConfirmSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        if serializer.was_verified:
+            write_audit_log(
+                action="user.email_verified",
+                request=request,
+                user=user,
+                entity=user,
+            )
+        return Response(
+            {
+                "detail": (
+                    "Email успешно подтверждён."
+                    if serializer.was_verified
+                    else "Email уже был подтверждён ранее."
+                ),
+                "already_verified": not serializer.was_verified,
+            }
+        )
+
+
+class EmailVerificationResendView(generics.GenericAPIView):
+    serializer_class = EmailVerificationResendSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"].strip().lower()
+        user = User.objects.filter(
+            email__iexact=email,
+            is_active=True,
+            status=User.Status.ACTIVE,
+            deleted_at__isnull=True,
+            email_verified_at__isnull=True,
+        ).first()
+        if user is not None:
+            send_verification_email(user)
+        return Response(
+            {
+                "detail": (
+                    "Если аккаунт существует и email ещё не подтверждён, "
+                    "новое письмо отправлено."
+                )
+            }
+        )

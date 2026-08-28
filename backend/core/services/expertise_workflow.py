@@ -38,6 +38,7 @@ def assign_expert(application_id, expert_id, administrator):
                 role__name=Role.Name.EXPERT,
                 status=User.Status.ACTIVE,
                 is_active=True,
+                deleted_at__isnull=True,
             )
             .first()
         )

@@ -30,8 +30,8 @@ export function RegisterPage() {
     setError("");
     try {
       await authApi.register(data as unknown as Record<string, unknown>);
-      notify("Регистрация завершена. Теперь войдите в систему.");
-      navigate("/login");
+      notify("Аккаунт создан. Проверьте почту и подтвердите email.");
+      navigate(`/email-verification?email=${encodeURIComponent(data.email)}`);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
     }

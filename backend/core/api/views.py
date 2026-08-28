@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_date
 from rest_framework import filters, mixins, viewsets
@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from core.api.pagination import GrantPagination
 from core.api.permissions import (
     IsAdministratorOrReadOnly,
-    IsApplicant,
+    IsVerifiedApplicant,
     is_administrator,
 )
 from core.api.serializers import (
@@ -112,31 +112,68 @@ class OrganizationViewSet(
 ):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
-    permission_classes = (IsApplicant,)
+    permission_classes = (IsVerifiedApplicant,)
 
     def get_queryset(self):
         organization_id = self.request.user.organization_id
         if not organization_id:
             return Organization.objects.none()
-        return Organization.objects.filter(pk=organization_id)
+        return Organization.objects.filter(pk=organization_id, deleted_at__isnull=True)
 
     def perform_create(self, serializer):
-        with transaction.atomic():
-            user = User.objects.select_for_update().get(pk=self.request.user.pk)
-            if user.organization_id:
-                raise ValidationError(
-                    {"detail": "У пользователя уже указана организация."}
-                )
-            organization = serializer.save()
-            user.organization = organization
-            user.save(update_fields=("organization", "updated_at"))
-            self.request.user.organization = organization
+        try:
+            with transaction.atomic():
+                user = User.objects.select_for_update().get(pk=self.request.user.pk)
+                if user.organization_id:
+                    raise ValidationError(
+                        {"detail": "У пользователя уже указана организация."}
+                    )
+                organization = serializer.save()
+                user.organization = organization
+                user.save(update_fields=("organization", "updated_at"))
+                self.request.user.organization = organization
+        except IntegrityError as error:
+            raise ValidationError(
+                {
+                    "code": "ORGANIZATION_IDENTIFIER_NOT_UNIQUE",
+                    "detail": "Организация с таким ИНН или ОГРН уже существует.",
+                }
+            ) from error
 
-    @action(detail=False, methods=("get", "put", "patch"), url_path="me")
+    @action(detail=False, methods=("get", "put", "patch", "delete"), url_path="me")
     def me(self, request):
         organization = get_object_or_404(self.get_queryset())
         if request.method == "GET":
             return Response(self.get_serializer(organization).data)
+
+        if request.method == "DELETE":
+            with transaction.atomic():
+                organization = Organization.objects.select_for_update().get(
+                    pk=organization.pk
+                )
+                users = list(
+                    User.objects.select_for_update().filter(
+                        organization=organization,
+                        deleted_at__isnull=True,
+                    )
+                )
+                write_audit_log(
+                    action="organization.soft_deleted",
+                    request=request,
+                    user=request.user,
+                    entity=organization,
+                )
+                organization.soft_delete()
+                for user in users:
+                    write_audit_log(
+                        action="user.soft_deleted",
+                        request=request,
+                        user=request.user,
+                        entity=user,
+                        metadata={"reason": "organization_soft_deleted"},
+                    )
+                    user.soft_delete(deleted_at=organization.deleted_at)
+            return Response(status=204)
 
         serializer = self.get_serializer(
             organization,
@@ -144,7 +181,16 @@ class OrganizationViewSet(
             partial=request.method == "PATCH",
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            with transaction.atomic():
+                serializer.save()
+        except IntegrityError as error:
+            raise ValidationError(
+                {
+                    "code": "ORGANIZATION_IDENTIFIER_NOT_UNIQUE",
+                    "detail": "Организация с таким ИНН или ОГРН уже существует.",
+                }
+            ) from error
         return Response(serializer.data)
 
 
@@ -157,7 +203,7 @@ class ApplicationViewSet(
 ):
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
-    permission_classes = (IsApplicant,)
+    permission_classes = (IsVerifiedApplicant,)
 
     def get_queryset(self):
         organization_id = self.request.user.organization_id

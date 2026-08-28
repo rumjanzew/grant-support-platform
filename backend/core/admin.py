@@ -19,14 +19,14 @@ from core.models import (
 class UserAdmin(DjangoUserAdmin):
     model = User
     ordering = ("email",)
-    list_display = ("email", "full_name", "role", "status", "organization", "is_staff")
-    list_filter = ("role", "status", "is_staff", "is_active")
+    list_display = ("email", "full_name", "role", "status", "organization", "is_staff", "deleted_at")
+    list_filter = ("role", "status", "is_staff", "is_active", "deleted_at")
     search_fields = ("email", "first_name", "last_name", "phone")
-    readonly_fields = ("created_at", "updated_at", "last_login")
+    readonly_fields = ("created_at", "updated_at", "last_login", "deleted_at")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("ФИО и контакты", {"fields": ("last_name", "first_name", "middle_name", "phone")}),
-        ("Платформа", {"fields": ("role", "organization", "status", "consent_pd_agreed_at")}),
+        ("Платформа", {"fields": ("role", "organization", "status", "consent_pd_agreed_at", "email_verified_at", "deleted_at")}),
         ("Безопасность", {"fields": ("failed_login_attempts", "locked_until", "password_changed_at", "last_login")}),
         ("Права Django", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Даты", {"fields": ("created_at", "updated_at")}),
@@ -45,6 +45,9 @@ class UserAdmin(DjangoUserAdmin):
     def full_name(self, user):
         return user.get_full_name().strip() or "—"
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
@@ -55,10 +58,13 @@ class RoleAdmin(admin.ModelAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "inn", "organization_type", "city", "status", "updated_at")
-    list_filter = ("status", "organization_type", "city")
+    list_display = ("name", "inn", "organization_type", "city", "status", "deleted_at", "updated_at")
+    list_filter = ("status", "organization_type", "city", "deleted_at")
     search_fields = ("name", "inn", "ogrn")
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at", "deleted_at")
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Grant)
