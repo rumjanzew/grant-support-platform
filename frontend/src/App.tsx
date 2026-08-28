@@ -4,6 +4,7 @@ import { AdministratorRoute, ApplicantRoute, AuthenticatedRoute, ExpertRoute, Gu
 import { AdminLayout } from "./components/AdminLayout";
 import { AppLayout } from "./components/AppLayout";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
+import { YandexMetrikaTracker } from "./components/YandexMetrikaTracker";
 import { ApplicationCreatePage } from "./pages/ApplicationCreatePage";
 import { ApplicationDetailPage } from "./pages/ApplicationDetailPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
@@ -30,6 +31,7 @@ import { ExpertDashboardPage } from "./pages/expert/ExpertDashboardPage";
 export default function App() {
   return (
     <>
+      <YandexMetrikaTracker />
       <Routes>
         <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
