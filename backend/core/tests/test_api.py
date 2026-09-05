@@ -126,6 +126,51 @@ class CoreApiTestCase(APITestCase):
         )
         self.assertEqual(hidden_detail.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_grant_pagination_boundaries(self):
+        today = timezone.localdate()
+
+        for index in range(1, 22):
+            markers = ["edge21"]
+            if index <= 20:
+                markers.append("edge20")
+            if index <= 11:
+                markers.append("edge11")
+            if index <= 10:
+                markers.append("edge10")
+
+            Grant.objects.create(
+                code=f"PAGE-{index:03d}",
+                title=f"Проверка пагинации {index:02d}",
+                description=" ".join(markers),
+                category="TEST",
+                start_date=today - timedelta(days=1),
+                end_date=today + timedelta(days=30),
+                max_amount=Decimal("100000.00"),
+                status=Grant.Status.OPEN,
+                created_by=self.admin,
+            )
+
+        expectations = {
+            "edge10": (10, [10]),
+            "edge11": (11, [10, 1]),
+            "edge20": (20, [10, 10]),
+            "edge21": (21, [10, 10, 1]),
+        }
+
+        for search_term, (expected_count, expected_page_sizes) in expectations.items():
+            with self.subTest(search_term=search_term):
+                for page, expected_page_size in enumerate(expected_page_sizes, start=1):
+                    response = self.client.get(
+                        reverse("grant-list"),
+                        {"search": search_term, "ordering": "title", "page": page},
+                    )
+
+                    self.assertEqual(response.status_code, status.HTTP_200_OK)
+                    self.assertEqual(response.data["count"], expected_count)
+                    self.assertEqual(len(response.data["results"]), expected_page_size)
+
+                self.assertIsNone(response.data["next"])
+
     def test_only_administrator_can_manage_grants(self):
         self.client.force_authenticate(self.applicant)
         denied = self.client.post(

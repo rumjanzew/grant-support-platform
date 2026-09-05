@@ -6,6 +6,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../api/errors";
 import { authApi } from "../api/services";
 import { BrandLogo } from "../components/BrandLogo";
+import { PasswordField } from "../components/PasswordField";
 import { useNotify } from "../notifications/NotificationContext";
 
 interface RegisterForm {
@@ -53,8 +54,8 @@ export function RegisterPage() {
           <TextField required label="Телефон" placeholder="+7 912 123-45-67" fullWidth error={Boolean(errors.phone)} helperText={errors.phone?.message} {...register("phone", { required: "Введите телефон" })} />
           <TextField required label="Email" type="email" autoComplete="email" fullWidth error={Boolean(errors.email)} helperText={errors.email?.message} {...register("email", { required: "Введите email" })} />
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}><TextField required label="Пароль" type="password" autoComplete="new-password" fullWidth error={Boolean(errors.password)} helperText={errors.password?.message ?? "Не менее 8 символов"} {...register("password", { required: "Введите пароль", minLength: { value: 8, message: "Минимум 8 символов" } })} /></Grid>
-            <Grid size={{ xs: 12, sm: 6 }}><TextField required label="Повторите пароль" type="password" autoComplete="new-password" fullWidth error={Boolean(errors.password_confirm)} helperText={errors.password_confirm?.message} {...register("password_confirm", { required: "Повторите пароль", validate: (value) => value === password || "Пароли не совпадают" })} /></Grid>
+            <Grid size={{ xs: 12, sm: 6 }}><PasswordField required label="Пароль" autoComplete="new-password" fullWidth error={Boolean(errors.password)} helperText={errors.password?.message ?? "Не менее 8 символов"} {...register("password", { required: "Введите пароль", minLength: { value: 8, message: "Минимум 8 символов" } })} /></Grid>
+            <Grid size={{ xs: 12, sm: 6 }}><PasswordField required label="Повторите пароль" autoComplete="new-password" fullWidth error={Boolean(errors.password_confirm)} helperText={errors.password_confirm?.message} {...register("password_confirm", { required: "Повторите пароль", validate: (value) => value === password || "Пароли не совпадают" })} /></Grid>
           </Grid>
           <Controller name="consent_pd_agreed" control={control} rules={{ required: "Необходимо согласие" }} render={({ field }) => <FormControlLabel control={<Checkbox checked={field.value} onChange={(_, checked) => field.onChange(checked)} />} label="Я согласен(на) на обработку персональных данных" />} />
           {errors.consent_pd_agreed && <Typography color="error" variant="caption">{errors.consent_pd_agreed.message}</Typography>}

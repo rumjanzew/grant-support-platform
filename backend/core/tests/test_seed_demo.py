@@ -1,7 +1,9 @@
 from io import StringIO
 
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase
+from django.test import override_settings
 
 from core.models import (
     Application,
@@ -10,6 +12,7 @@ from core.models import (
     ExpertiseReport,
     Grant,
     Organization,
+    Role,
     User,
 )
 
@@ -53,3 +56,39 @@ class SeedDemoCommandTests(TestCase):
         self.assertTrue(
             User.objects.get(email="admin@example.com").check_password("DemoPass2026!")
         )
+
+
+class SeedGrantsCommandTests(TestCase):
+    def setUp(self):
+        administrator_role = Role.objects.get(name=Role.Name.ADMINISTRATOR)
+        self.administrator = User.objects.create_user(
+            email="catalog-admin@example.com",
+            role=administrator_role,
+        )
+
+    def test_seed_grants_is_idempotent_and_only_populates_grants(self):
+        command_args = ("seed_grants", "--created-by", self.administrator.email)
+        command_args += ("--allow-production",)
+
+        call_command(*command_args, stdout=StringIO())
+        call_command(*command_args, stdout=StringIO())
+
+        grants = Grant.objects.filter(code__startswith="CATALOG-DEMO-")
+        self.assertEqual(grants.count(), 30)
+        self.assertEqual(
+            grants.filter(status__in=(Grant.Status.OPEN, Grant.Status.PUBLISHED)).count(),
+            24,
+        )
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(Organization.objects.count(), 0)
+        self.assertEqual(Application.objects.count(), 0)
+
+    @override_settings(DEBUG=False)
+    def test_seed_grants_requires_explicit_production_confirmation(self):
+        with self.assertRaises(CommandError):
+            call_command(
+                "seed_grants",
+                "--created-by",
+                self.administrator.email,
+                stdout=StringIO(),
+            )

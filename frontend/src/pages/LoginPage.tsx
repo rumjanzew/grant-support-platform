@@ -7,6 +7,7 @@ import { getApiErrorMessage } from "../api/errors";
 import { useAuth } from "../auth/AuthContext";
 import { roleHome } from "../auth/RouteGuards";
 import { BrandLogo } from "../components/BrandLogo";
+import { PasswordField } from "../components/PasswordField";
 
 interface LoginForm {
   email: string;
@@ -18,6 +19,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState("");
+  const successMessage = (location.state as { successMessage?: string } | null)?.successMessage;
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>();
 
   const onSubmit = async (data: LoginForm) => {
@@ -38,9 +40,10 @@ export function LoginPage() {
       <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>Войдите, чтобы управлять заявками.</Typography>
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={2.5}>
+          {successMessage && <Alert severity="success">{successMessage}</Alert>}
           {error && <Alert severity="error">{error}</Alert>}
           <TextField required label="Email" type="email" autoComplete="email" fullWidth error={Boolean(errors.email)} helperText={errors.email?.message} {...register("email", { required: "Введите email" })} />
-          <TextField required label="Пароль" type="password" autoComplete="current-password" fullWidth error={Boolean(errors.password)} helperText={errors.password?.message} {...register("password", { required: "Введите пароль" })} />
+          <PasswordField required label="Пароль" autoComplete="current-password" fullWidth error={Boolean(errors.password)} helperText={errors.password?.message} {...register("password", { required: "Введите пароль" })} />
           <Button type="submit" size="large" variant="contained" disabled={isSubmitting}>{isSubmitting ? "Входим…" : "Войти"}</Button>
           <Link component={RouterLink} to="/password-reset" textAlign="center">Забыли пароль?</Link>
           <Typography variant="body2" textAlign="center">Нет аккаунта? <Link component={RouterLink} to="/register">Зарегистрироваться</Link></Typography>

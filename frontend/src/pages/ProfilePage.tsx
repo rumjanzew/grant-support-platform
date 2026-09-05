@@ -1,7 +1,5 @@
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import {
   Alert,
   Box,
@@ -11,8 +9,6 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
-  IconButton,
-  InputAdornment,
   Paper,
   Stack,
   TextField,
@@ -29,6 +25,7 @@ import { useAuth } from "../auth/AuthContext";
 import { LoadingState } from "../components/LoadingState";
 import { OrganizationSetupForm } from "../components/OrganizationSetupForm";
 import { PageHeader } from "../components/PageHeader";
+import { PasswordField } from "../components/PasswordField";
 import { StatusChip } from "../components/StatusChip";
 import { useNotify } from "../notifications/NotificationContext";
 import type { Organization, Profile, ProfileInput } from "../types";
@@ -52,7 +49,6 @@ export function ProfilePage() {
   const [error, setError] = useState("");
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [passwordError, setPasswordError] = useState("");
-  const [showPasswords, setShowPasswords] = useState(false);
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileInput>();
   const passwordForm = useForm<PasswordForm>();
 
@@ -113,14 +109,6 @@ export function ProfilePage() {
   const address = organization
     ? [organization.postal_code, organization.city, organization.street, organization.house && `д. ${organization.house}`].filter(Boolean).join(", ") || "—"
     : "—";
-  const passwordAdornment = (
-    <InputAdornment position="end">
-      <IconButton aria-label={showPasswords ? "Скрыть пароль" : "Показать пароль"} onClick={() => setShowPasswords((value) => !value)} edge="end">
-        {showPasswords ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon />}
-      </IconButton>
-    </InputAdornment>
-  );
-
   return (
     <>
       <PageHeader title="Профиль" subtitle="Личные данные, организация и безопасность учётной записи" />
@@ -174,9 +162,9 @@ export function ProfilePage() {
           <DialogTitle>Изменение пароля</DialogTitle>
           <DialogContent><Stack spacing={2.25} sx={{ pt: 1 }}>
             {passwordError && <Alert severity="error">{passwordError}</Alert>}
-            <TextField required fullWidth type={showPasswords ? "text" : "password"} label="Текущий пароль" error={Boolean(passwordForm.formState.errors.current_password)} helperText={passwordForm.formState.errors.current_password?.message} slotProps={{ input: { endAdornment: passwordAdornment } }} {...passwordForm.register("current_password", { required: "Введите текущий пароль" })} />
-            <TextField required fullWidth type={showPasswords ? "text" : "password"} label="Новый пароль" error={Boolean(passwordForm.formState.errors.new_password)} helperText={passwordForm.formState.errors.new_password?.message || "Не менее 8 символов"} slotProps={{ input: { endAdornment: passwordAdornment } }} {...passwordForm.register("new_password", { required: "Введите новый пароль", minLength: { value: 8, message: "Пароль должен содержать не менее 8 символов" } })} />
-            <TextField required fullWidth type={showPasswords ? "text" : "password"} label="Повтор нового пароля" error={Boolean(passwordForm.formState.errors.new_password_confirm)} helperText={passwordForm.formState.errors.new_password_confirm?.message} slotProps={{ input: { endAdornment: passwordAdornment } }} {...passwordForm.register("new_password_confirm", { required: "Повторите новый пароль", validate: (value) => value === passwordForm.getValues("new_password") || "Пароли не совпадают" })} />
+            <PasswordField required fullWidth autoComplete="current-password" label="Текущий пароль" error={Boolean(passwordForm.formState.errors.current_password)} helperText={passwordForm.formState.errors.current_password?.message} {...passwordForm.register("current_password", { required: "Введите текущий пароль" })} />
+            <PasswordField required fullWidth autoComplete="new-password" label="Новый пароль" error={Boolean(passwordForm.formState.errors.new_password)} helperText={passwordForm.formState.errors.new_password?.message || "Не менее 8 символов"} {...passwordForm.register("new_password", { required: "Введите новый пароль", minLength: { value: 8, message: "Пароль должен содержать не менее 8 символов" } })} />
+            <PasswordField required fullWidth autoComplete="new-password" label="Повтор нового пароля" error={Boolean(passwordForm.formState.errors.new_password_confirm)} helperText={passwordForm.formState.errors.new_password_confirm?.message} {...passwordForm.register("new_password_confirm", { required: "Повторите новый пароль", validate: (value) => value === passwordForm.getValues("new_password") || "Пароли не совпадают" })} />
           </Stack></DialogContent>
           <DialogActions sx={{ px: 3, pb: 3 }}><Button onClick={() => setPasswordOpen(false)} disabled={passwordForm.formState.isSubmitting}>Отмена</Button><Button type="submit" variant="contained" disabled={passwordForm.formState.isSubmitting}>{passwordForm.formState.isSubmitting ? "Изменяем…" : "Изменить пароль"}</Button></DialogActions>
         </Box>

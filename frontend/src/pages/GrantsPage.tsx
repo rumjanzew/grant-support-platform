@@ -2,8 +2,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { Alert, Box, Button, Card, CardActions, CardContent, Grid, InputAdornment, MenuItem, Pagination, Paper, Stack, TextField, Typography } from "@mui/material";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 
 import { getApiErrorMessage } from "../api/errors";
 import { grantsApi, type GrantParams } from "../api/services";
@@ -17,24 +17,53 @@ import { formatDate } from "../utils/date";
 
 const currency = new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 });
 
-const initialFilters = { search: "", status: "", category: "", ordering: "-created_at", deadline_to: "" };
+const PAGE_SIZE = 10;
+const DEFAULT_ORDERING = "-created_at";
+
+function parsePage(value: string | null) {
+  const page = Number(value);
+  return Number.isInteger(page) && page > 0 ? page : 1;
+}
 
 export function GrantsPage() {
   const [data, setData] = useState<PaginatedResponse<Grant> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [catalogState, setCatalogState] = useState({ page: 1, filters: initialFilters });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryString = searchParams.toString();
+  const page = parsePage(searchParams.get("page"));
+  const filters = useMemo(() => ({
+    search: searchParams.get("search") ?? "",
+    status: searchParams.get("status") ?? "",
+    category: searchParams.get("category") ?? "",
+    ordering: searchParams.get("ordering") ?? DEFAULT_ORDERING,
+    deadline_to: searchParams.get("deadline_to") ?? "",
+  }), [queryString]);
+  const [search, setSearch] = useState(filters.search);
+  const [category, setCategory] = useState(filters.category);
   const requestIdRef = useRef(0);
-  const { filters, page } = catalogState;
+
+  const updateQuery = useCallback((updates: Record<string, string>, resetPage = true) => {
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      for (const [name, value] of Object.entries(updates)) {
+        if (!value || (name === "ordering" && value === DEFAULT_ORDERING)) {
+          nextParams.delete(name);
+        } else {
+          nextParams.set(name, value);
+        }
+      }
+      if (resetPage) nextParams.delete("page");
+      return nextParams;
+    });
+  }, [setSearchParams]);
 
   const loadGrants = useCallback(async (signal?: AbortSignal) => {
     const requestId = ++requestIdRef.current;
     setLoading(true);
     setError("");
     try {
-      const params: GrantParams = { page, page_size: 10, ...filters };
+      const params: GrantParams = { page, page_size: PAGE_SIZE, ...filters };
       const response = await grantsApi.list(params, signal);
       if (signal?.aborted || requestId !== requestIdRef.current) return;
       setData(response.data);
@@ -53,23 +82,26 @@ export function GrantsPage() {
   }, [loadGrants]);
 
   useEffect(() => {
+    setSearch((current) => current === filters.search ? current : filters.search);
+    setCategory((current) => current === filters.category ? current : filters.category);
+  }, [filters.category, filters.search]);
+
+  useEffect(() => {
     const timer = window.setTimeout(() => {
-      setCatalogState((current) => {
-        if (current.filters.search === search && current.filters.category === category) return current;
-        return { page: 1, filters: { ...current.filters, search, category } };
-      });
+      if (filters.search === search && filters.category === category) return;
+      updateQuery({ search, category });
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [category, search]);
+  }, [category, filters.category, filters.search, search, updateQuery]);
 
   const changeFilter = (name: "status" | "ordering" | "deadline_to", value: string) => {
-    setCatalogState((current) => ({ page: 1, filters: { ...current.filters, [name]: value } }));
+    updateQuery({ [name]: value });
   };
 
   const resetFilters = () => {
     setSearch("");
     setCategory("");
-    setCatalogState({ page: 1, filters: initialFilters });
+    setSearchParams(new URLSearchParams());
   };
 
   return (
@@ -106,7 +138,7 @@ export function GrantsPage() {
               </Grid>
             ))}
           </Grid>
-          {data.count > 10 && <Stack alignItems="center" sx={{ mt: 4 }}><Pagination page={page} count={Math.ceil(data.count / 10)} onChange={(_, value) => setCatalogState((current) => ({ ...current, page: value }))} color="primary" /></Stack>}
+          {data.count > PAGE_SIZE && <Stack alignItems="center" sx={{ mt: 4 }}><Pagination page={page} count={Math.ceil(data.count / PAGE_SIZE)} onChange={(_, value) => updateQuery({ page: value === 1 ? "" : String(value) }, false)} color="primary" /></Stack>}
         </>
       )}
     </Box>

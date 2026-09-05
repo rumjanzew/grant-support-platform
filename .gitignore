@@ -17,6 +17,10 @@ node_modules/
 dist/
 build/
 
+# Local generated artifacts
+output/
+tmp/
+
 # IDE
 .vscode/
 .idea/
