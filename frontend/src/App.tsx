@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 
 import { AdministratorRoute, ApplicantRoute, AuthenticatedRoute, ExpertRoute, GuestRoute } from "./auth/RouteGuards";
 import { AdminLayout } from "./components/AdminLayout";
+import { AnalyticsConsent } from "./components/AnalyticsConsent";
 import { AppLayout } from "./components/AppLayout";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { YandexMetrikaTracker } from "./components/YandexMetrikaTracker";
@@ -63,6 +64,7 @@ export default function App() {
         </Route>
       </Routes>
       <ScrollToTopButton />
+      <AnalyticsConsent />
     </>
   );
 }

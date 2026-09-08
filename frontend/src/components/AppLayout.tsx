@@ -21,6 +21,7 @@ import { useState } from "react";
 import { Link as RouterLink, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
+import { openAnalyticsSettings } from "../analytics/analyticsConsent";
 import { getRoleLabel } from "../utils/labels";
 import { BrandLogo } from "./BrandLogo";
 import { NotificationBell } from "./NotificationBell";
@@ -108,7 +109,15 @@ export function AppLayout() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Typography variant="subtitle2" fontWeight={750} sx={{ mb: 1.5 }}>Информация</Typography>
-              <Stack spacing={1.1}>{["О платформе", "Поддержка", "Политика конфиденциальности"].map((item) => <Typography key={item} variant="body2" sx={{ color: "rgba(255,255,255,0.72)" }}>{item}</Typography>)}</Stack>
+              <Stack spacing={1.1}>
+                {["О платформе", "Поддержка", "Политика конфиденциальности"].map((item) => <Typography key={item} variant="body2" sx={{ color: "rgba(255,255,255,0.72)" }}>{item}</Typography>)}
+                <Button
+                  onClick={openAnalyticsSettings}
+                  sx={{ color: "rgba(255,255,255,0.72)", p: 0, minWidth: 0, width: "fit-content", justifyContent: "flex-start", fontSize: "0.875rem", fontWeight: 400, textTransform: "none", "&:hover": { color: "#FFFFFF", backgroundColor: "transparent", textDecoration: "underline" } }}
+                >
+                  Настройки аналитики
+                </Button>
+              </Stack>
             </Grid>
           </Grid>
           <Divider sx={{ my: 3, borderColor: "rgba(255,255,255,0.14)" }} />
