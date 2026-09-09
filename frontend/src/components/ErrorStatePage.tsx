@@ -2,6 +2,7 @@ import BlockOutlinedIcon from "@mui/icons-material/BlockOutlined";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ExploreOutlinedIcon from "@mui/icons-material/ExploreOutlined";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import type { ReactNode } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 interface ErrorStatePageProps {
@@ -9,6 +10,7 @@ interface ErrorStatePageProps {
   title: string;
   description: string;
   showReload?: boolean;
+  children?: ReactNode;
 }
 
 const icons = {
@@ -17,7 +19,7 @@ const icons = {
   "500": <ErrorOutlineIcon sx={{ fontSize: 38 }} />,
 };
 
-export function ErrorStatePage({ code, title, description, showReload = false }: ErrorStatePageProps) {
+export function ErrorStatePage({ code, title, description, showReload = false, children }: ErrorStatePageProps) {
   const navigate = useNavigate();
   return (
     <Paper variant="outlined" sx={{ p: { xs: 4, md: 7 }, textAlign: "center", maxWidth: 720, mx: "auto" }}>
@@ -26,6 +28,7 @@ export function ErrorStatePage({ code, title, description, showReload = false }:
         {code && <Typography variant="h1" color="primary" fontWeight={800} sx={{ fontSize: { xs: "4rem", sm: "5.5rem" }, lineHeight: 1 }}>{code}</Typography>}
         <Typography variant="h5">{title}</Typography>
         <Typography color="text.secondary" sx={{ maxWidth: 480 }}>{description}</Typography>
+        {children}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ pt: 1 }}>
           <Button variant="outlined" onClick={() => navigate(-1)}>Назад</Button>
           {showReload && <Button variant="outlined" onClick={() => window.location.reload()}>Обновить страницу</Button>}
