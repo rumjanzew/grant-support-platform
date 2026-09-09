@@ -5,6 +5,7 @@ from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 from core.api.pagination import GrantPagination
 from core.api.permissions import (
@@ -14,6 +15,7 @@ from core.api.permissions import (
 )
 from core.api.serializers import (
     ApplicationSerializer,
+    GrantCategoriesSerializer,
     GrantSerializer,
     OrganizationSerializer,
 )
@@ -36,6 +38,22 @@ class GrantViewSet(viewsets.ModelViewSet):
         "created_at",
     )
     ordering = ("-created_at",)
+
+    @extend_schema(responses=GrantCategoriesSerializer)
+    @action(detail=False, methods=("get",), url_path="categories")
+    def categories(self, request):
+        queryset = Grant.objects.all()
+        if not is_administrator(request.user):
+            queryset = queryset.filter(
+                status__in=(Grant.Status.PUBLISHED, Grant.Status.OPEN)
+            )
+        categories = (
+            queryset.exclude(category="")
+            .order_by("category")
+            .values_list("category", flat=True)
+            .distinct()
+        )
+        return Response({"categories": list(categories)})
 
     def get_queryset(self):
         queryset = Grant.objects.select_related("created_by")

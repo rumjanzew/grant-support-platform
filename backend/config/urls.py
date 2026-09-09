@@ -89,9 +89,14 @@ urlpatterns = [
     ),
     path("api/schema/", SpectacularAPIView.as_view(), name="openapi-schema"),
     path(
-        "api/docs/",
+        "api-docs/",
         SpectacularSwaggerView.as_view(url_name="openapi-schema"),
         name="swagger-ui",
+    ),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="openapi-schema"),
+        name="swagger-ui-legacy",
     ),
     path(
         "api/admin/dashboard/",

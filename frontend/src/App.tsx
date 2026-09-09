@@ -6,6 +6,7 @@ import { AnalyticsConsent } from "./components/AnalyticsConsent";
 import { AppLayout } from "./components/AppLayout";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { YandexMetrikaTracker } from "./components/YandexMetrikaTracker";
+import { UnexpectedErrorPage } from "./components/ErrorStatePage";
 import { ApplicationCreatePage } from "./pages/ApplicationCreatePage";
 import { ApplicationDetailPage } from "./pages/ApplicationDetailPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="password-reset" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
           <Route path="password-reset/confirm" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
           <Route path="email-verification" element={<EmailVerificationPage />} />
+          {import.meta.env.DEV && <Route path="test-500" element={<UnexpectedErrorPage />} />}
           <Route path="profile" element={<AuthenticatedRoute><ProfilePage /></AuthenticatedRoute>} />
           <Route path="notifications" element={<AuthenticatedRoute><NotificationsPage /></AuthenticatedRoute>} />
           <Route path="applications" element={<ApplicantRoute><ApplicationsPage /></ApplicantRoute>} />

@@ -146,11 +146,16 @@ class StableReleaseApiTests(APITestCase):
         self.assertEqual(len(response.data["user_registrations_by_day"]), 14)
         self.assertEqual(len(response.data["applications_by_day"]), 14)
 
+    @override_settings(DEBUG=False)
     def test_openapi_schema_and_swagger_are_public_and_include_jwt(self):
         schema = self.client.get(reverse("openapi-schema"), HTTP_ACCEPT="application/json")
         docs = self.client.get(reverse("swagger-ui"))
+        legacy_docs = self.client.get(reverse("swagger-ui-legacy"))
 
         self.assertEqual(schema.status_code, status.HTTP_200_OK)
         self.assertEqual(docs.status_code, status.HTTP_200_OK)
+        self.assertEqual(legacy_docs.status_code, status.HTTP_200_OK)
+        self.assertEqual(reverse("swagger-ui"), "/api-docs/")
+        self.assertEqual(reverse("swagger-ui-legacy"), "/api/docs/")
         self.assertIn("jwtAuth", schema.data["components"]["securitySchemes"])
         self.assertIn("/api/auth/password-reset/", schema.data["paths"])

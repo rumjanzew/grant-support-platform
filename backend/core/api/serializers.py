@@ -102,6 +102,10 @@ class GrantSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class GrantCategoriesSerializer(serializers.Serializer):
+    categories = serializers.ListField(child=serializers.CharField())
+
+
 class ApplicationSerializer(serializers.ModelSerializer):
     organization = serializers.PrimaryKeyRelatedField(read_only=True)
 

@@ -40,7 +40,8 @@ export function GrantsPage() {
     deadline_to: searchParams.get("deadline_to") ?? "",
   }), [queryString]);
   const [search, setSearch] = useState(filters.search);
-  const [category, setCategory] = useState(filters.category);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [categoriesError, setCategoriesError] = useState("");
   const requestIdRef = useRef(0);
 
   const updateQuery = useCallback((updates: Record<string, string>, resetPage = true) => {
@@ -83,16 +84,27 @@ export function GrantsPage() {
 
   useEffect(() => {
     setSearch((current) => current === filters.search ? current : filters.search);
-    setCategory((current) => current === filters.category ? current : filters.category);
-  }, [filters.category, filters.search]);
+  }, [filters.search]);
+
+  useEffect(() => {
+    let active = true;
+    grantsApi.categories()
+      .then((response) => {
+        if (active) setCategories(response.data.categories);
+      })
+      .catch((requestError) => {
+        if (active) setCategoriesError(getApiErrorMessage(requestError));
+      });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (filters.search === search && filters.category === category) return;
-      updateQuery({ search, category });
+      if (filters.search === search) return;
+      updateQuery({ search });
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [category, filters.category, filters.search, search, updateQuery]);
+  }, [filters.search, search, updateQuery]);
 
   const changeFilter = (name: "status" | "ordering" | "deadline_to", value: string) => {
     updateQuery({ [name]: value });
@@ -100,9 +112,12 @@ export function GrantsPage() {
 
   const resetFilters = () => {
     setSearch("");
-    setCategory("");
     setSearchParams(new URLSearchParams());
   };
+
+  const categoryOptions = filters.category && !categories.includes(filters.category)
+    ? [filters.category, ...categories]
+    : categories;
 
   return (
     <Box>
@@ -112,7 +127,7 @@ export function GrantsPage() {
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 4 }}><TextField size="small" fullWidth label="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }} /></Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField select size="small" fullWidth label="Статус" value={filters.status} onChange={(e) => changeFilter("status", e.target.value)}><MenuItem value="">Все</MenuItem><MenuItem value="OPEN">Приём заявок</MenuItem><MenuItem value="PUBLISHED">Опубликован</MenuItem></TextField></Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField size="small" fullWidth label="Категория" value={category} onChange={(e) => setCategory(e.target.value)} /></Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField select size="small" fullWidth label="Категория" value={filters.category} onChange={(e) => updateQuery({ category: e.target.value })} error={Boolean(categoriesError)} helperText={categoriesError || undefined}><MenuItem value="">Все категории</MenuItem>{categoryOptions.map((category) => <MenuItem key={category} value={category}>{category}</MenuItem>)}</TextField></Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}><RussianDateField size="small" label="Дедлайн до" value={filters.deadline_to} onChange={(deadlineTo) => changeFilter("deadline_to", deadlineTo)} /></Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}><TextField select size="small" fullWidth label="Сортировка" value={filters.ordering} onChange={(e) => changeFilter("ordering", e.target.value)}><MenuItem value="-created_at">Сначала новые</MenuItem><MenuItem value="end_date">По сроку</MenuItem><MenuItem value="-max_amount">По сумме</MenuItem><MenuItem value="title">По названию</MenuItem></TextField></Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}><Button fullWidth variant="outlined" onClick={resetFilters}>Сбросить</Button></Grid>

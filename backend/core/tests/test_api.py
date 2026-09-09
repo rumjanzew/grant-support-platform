@@ -76,7 +76,7 @@ class CoreApiTestCase(APITestCase):
             code="DRAFT-001",
             title="Скрытый черновик",
             description="Не опубликован",
-            category="Образование",
+            category="Скрытая категория",
             start_date=today,
             end_date=today + timedelta(days=10),
             max_amount=Decimal("100000.00"),
@@ -125,6 +125,20 @@ class CoreApiTestCase(APITestCase):
             reverse("grant-detail", args=(self.draft_grant.id,))
         )
         self.assertEqual(hidden_detail.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_public_grant_categories_are_unique_and_exclude_hidden_grants(self):
+        response = self.client.get(reverse("grant-categories"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["categories"], ["Культура", "Образование"])
+
+        self.client.force_authenticate(self.admin)
+        administrator_response = self.client.get(reverse("grant-categories"))
+        self.assertEqual(administrator_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            administrator_response.data["categories"],
+            ["Культура", "Образование", "Скрытая категория"],
+        )
 
     def test_grant_pagination_boundaries(self):
         today = timezone.localdate()

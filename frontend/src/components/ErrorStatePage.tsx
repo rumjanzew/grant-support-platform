@@ -41,5 +41,12 @@ export function ForbiddenPage() {
 }
 
 export function UnexpectedErrorPage() {
-  return <ErrorStatePage code="500" title="Что-то пошло не так" description="Произошла непредвиденная ошибка. Обновите страницу или вернитесь на главную." showReload />;
+  return (
+    <ErrorStatePage
+      code="500"
+      title="Технические работы"
+      description="На сервере произошла внутренняя ошибка. Попробуйте повторить попытку позже. Если ошибка сохраняется, свяжитесь с поддержкой."
+      showReload
+    />
+  );
 }
